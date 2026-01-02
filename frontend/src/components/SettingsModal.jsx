@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   Upload, 
@@ -12,9 +12,36 @@ import { companyService } from '../services/api';
 export default function SettingsModal({ isOpen, onClose }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [existingLogo, setExistingLogo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null); // success | error
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Reset state
+      setSelectedFile(null);
+      setPreview(null);
+      setExistingLogo(null);
+      setStatus(null);
+      
+      // Check for existing logo
+      checkExistingLogo();
+    }
+  }, [isOpen]);
+
+  const checkExistingLogo = async () => {
+    try {
+      // Add timestamp to bypass cache
+      const url = `${import.meta.env.VITE_API_URL}/company/logo?t=${Date.now()}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        setExistingLogo(url);
+      }
+    } catch (err) {
+      console.error("Error checking logo", err);
+    }
+  };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -41,11 +68,16 @@ export default function SettingsModal({ isOpen, onClose }) {
       setLoading(true);
       await companyService.uploadLogo(selectedFile);
       setStatus('success');
+      
+      // Refresh existing logo view
+      const url = `${import.meta.env.VITE_API_URL}/company/logo?t=${Date.now()}`;
+      setExistingLogo(url);
+      setPreview(null);
+      setSelectedFile(null);
+
       setTimeout(() => {
         onClose();
         setStatus(null);
-        setSelectedFile(null);
-        setPreview(null);
       }, 1500);
     } catch (error) {
       console.error('Error uploading logo:', error);
@@ -75,11 +107,11 @@ export default function SettingsModal({ isOpen, onClose }) {
           <div className="mb-6">
             <h3 className="font-bold text-slate-700 mb-2">Logo / Encabezado</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Sube una imagen con tu logo o encabezado completo (como la imagen de Marinkovic Gas) para que aparezca en la parte superior de los presupuestos PDF.
+              Sube una imagen con tu logo o encabezado completo para que aparezca en la parte superior de los presupuestos PDF.
             </p>
 
             <div 
-              className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all ${
+              className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[160px] ${
                 preview ? 'border-primary-300 bg-primary-50/10' : 'border-slate-300 hover:border-primary-400 hover:bg-slate-50'
               }`}
               onClick={() => fileInputRef.current?.click()}
@@ -101,8 +133,22 @@ export default function SettingsModal({ isOpen, onClose }) {
                   />
                   <div className="mt-4 text-center">
                     <span className="text-xs font-bold text-primary-600 bg-primary-100 px-2 py-1 rounded-full">
-                      Imagen seleccionada
+                      Nueva Imagen
                     </span>
+                  </div>
+                </div>
+              ) : existingLogo ? (
+                <div className="relative w-full">
+                  <img 
+                    src={existingLogo} 
+                    alt="Current Logo" 
+                    className="max-h-32 mx-auto object-contain rounded-lg" 
+                  />
+                  <div className="mt-4 text-center">
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                      Logo Actual
+                    </span>
+                    <p className="text-xs text-slate-400 mt-2">Haz clic para cambiar</p>
                   </div>
                 </div>
               ) : (
@@ -118,7 +164,7 @@ export default function SettingsModal({ isOpen, onClose }) {
           </div>
 
           {status === 'success' && (
-            <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded-lg flex items-center gap-2 text-sm font-bold animate-in slide-in-from-top-2">
+            <div className="mb-4 p-3 bg-primary-50 text-primary-700 rounded-lg flex items-center gap-2 text-sm font-bold animate-in slide-in-from-top-2">
               <CheckCircle2 size={16} />
               ¡Logo actualizado correctamente!
             </div>
@@ -136,7 +182,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all text-sm"
             >
-              Cancelar
+              Cerrar
             </button>
             <button 
               onClick={handleUpload}
@@ -162,4 +208,3 @@ export default function SettingsModal({ isOpen, onClose }) {
     </div>
   );
 }
-

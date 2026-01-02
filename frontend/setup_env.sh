@@ -1,28 +1,20 @@
 #!/bin/bash
 
-# Script para configurar el archivo .env del frontend
-# Uso: ./setup_env.sh [dev|prod]
+# Default values
+API_URL="http://localhost:8000/api"
+GOOGLE_CLIENT_ID="1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com"
 
-MODE=${1:-dev}
-
-if [ "$MODE" = "prod" ]; then
-    echo "🚀 Configurando frontend para PRODUCCIÓN"
-    cat > .env << 'EOF'
-# Production Environment
-VITE_API_URL=https://sistema.qeva.xyz/api
-EOF
-    echo "✅ Frontend configurado para: https://sistema.qeva.xyz"
-else
-    echo "🔧 Configurando frontend para DESARROLLO"
-    cat > .env << 'EOF'
-# Development Environment
-VITE_API_URL=http://localhost:8000/api
-EOF
-    echo "✅ Frontend configurado para: http://localhost:8000"
+# Check if production argument is passed
+if [ "$1" == "prod" ]; then
+    API_URL="https://sistema.qeva.xyz/api"
 fi
 
-echo ""
-echo "📋 Para iniciar el frontend:"
-echo "   npm install"
-echo "   npm run dev"
+echo "Creating .env file with API_URL=$API_URL"
 
+# Write to .env file
+cat > .env << EOL
+VITE_API_URL=$API_URL
+VITE_GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+EOL
+
+echo ".env file created successfully!"

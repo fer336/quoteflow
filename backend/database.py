@@ -4,7 +4,11 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Try to load from Docker Secret first
+if os.path.exists("/run/secrets/backend.env"):
+    load_dotenv("/run/secrets/backend.env")
+else:
+    load_dotenv()
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 

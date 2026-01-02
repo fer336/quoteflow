@@ -8,7 +8,8 @@ import {
   User,
   Mail,
   Phone,
-  FileText
+  FileText,
+  Edit2
 } from 'lucide-react';
 import { clientService } from '../services/api';
 
@@ -17,6 +18,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   
   // New Client Form State
   const [newClient, setNewClient] = useState({
@@ -44,17 +46,41 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
     }
   };
 
+  const handleEdit = (client, e) => {
+    e.stopPropagation();
+    setNewClient({
+      name: client.name,
+      email: client.email || '',
+      phone: client.phone || '',
+      tax_id: client.tax_id || ''
+    });
+    setEditingId(client.id);
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const created = await clientService.create(newClient);
-      setClients([...clients, created]);
-      setNewClient({ name: '', email: '', phone: '', tax_id: '' });
-      setShowForm(false);
+      if (editingId) {
+        // Update
+        const updated = await clientService.update(editingId, newClient);
+        setClients(clients.map(c => c.id === editingId ? updated : c));
+      } else {
+        // Create
+        const created = await clientService.create(newClient);
+        setClients([...clients, created]);
+      }
+      resetForm();
     } catch (error) {
-      console.error('Error creating client:', error);
-      alert('Error al crear el cliente');
+      console.error('Error saving client:', error);
+      alert('Error al guardar el cliente');
     }
+  };
+
+  const resetForm = () => {
+    setNewClient({ name: '', email: '', phone: '', tax_id: '' });
+    setEditingId(null);
+    setShowForm(false);
   };
 
   const handleDelete = async (id, e) => {
@@ -64,6 +90,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
     try {
       await clientService.delete(id);
       setClients(clients.filter(c => c.id !== id));
+      if (editingId === id) resetForm();
     } catch (error) {
       console.error('Error deleting client:', error);
     }
@@ -103,15 +130,18 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
               />
             </div>
             <button 
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                if (showForm) resetForm();
+                else setShowForm(true);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${showForm ? 'bg-slate-100 text-slate-600' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
             >
-              <Plus size={16} />
+              <Plus size={16} className={showForm ? "rotate-45 transition-transform" : ""} />
               {showForm ? 'Cancelar' : 'Nuevo Cliente'}
             </button>
           </div>
 
-          {/* Add Form */}
+          {/* Add/Edit Form */}
           {showForm && (
             <form onSubmit={handleSubmit} className="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 overflow-y-auto">
               <div className="col-span-1">
@@ -167,12 +197,12 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                   />
                 </div>
               </div>
-              <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
+              <div className="col-span-1 md:col-span-2 flex justify-end mt-2 gap-2">
                 <button 
                   type="submit" 
                   className="w-full md:w-auto bg-primary-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
                 >
-                  Guardar Cliente
+                  {editingId ? 'Actualizar Cliente' : 'Guardar Cliente'}
                 </button>
               </div>
             </form>
@@ -210,12 +240,22 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                       </div>
                     </div>
                     
-                    <button 
-                      onClick={(e) => handleDelete(client.id, e)}
-                      className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={(e) => handleEdit(client, e)}
+                        className="p-2 text-slate-300 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
+                        title="Editar"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        onClick={(e) => handleDelete(client.id, e)}
+                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        title="Eliminar"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

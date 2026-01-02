@@ -1,72 +1,78 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: budgetpro_db
-    environment:
-      POSTGRES_DB: budgetpro_db
-      POSTGRES_USER: budgetpro_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-budgetpro_pass_2025}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - budgetpro_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U budgetpro_user -d budgetpro_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # FastAPI Backend
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: budgetpro_backend
-    environment:
-      DATABASE_URL: postgresql://budgetpro_user:${DB_PASSWORD:-budgetpro_pass_2025}@postgres:5432/budgetpro_db
-      API_HOST: 0.0.0.0
-      API_PORT: 8000
-      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,https://finanzas.qeva.xyz
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    image: ferc33/budgetpro-backend:latest
     networks:
-      - budgetpro_network
-    volumes:
-      - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-  # React Frontend
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: budgetpro_frontend
+      - network_public
+      - budgetpro-internal
+    secrets:
+      - source: budgetpro_backend_env_v2
+        target: /run/secrets/backend.env
     environment:
-      VITE_API_URL: http://localhost:8000/api
-    ports:
-      - "5173:5173"
+      - DATABASE_URL_FILE=/run/secrets/backend.env
+      - GOOGLE_CLIENT_ID_FILE=/run/secrets/backend.env
+      - CORS_ORIGINS=https://sistema.qeva.xyz,http://sistema.qeva.xyz
+    volumes:
+      - budgetpro_static:/app/static
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.budgetpro-api.rule=Host(`sistema.qeva.xyz`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.budgetpro-api.entrypoints=websecure"
+        - "traefik.http.routers.budgetpro-api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.budgetpro-backend.loadbalancer.server.port=8000"
+        - "traefik.http.routers.budgetpro-static.rule=Host(`sistema.qeva.xyz`) && PathPrefix(`/static`)"
+        - "traefik.http.routers.budgetpro-static.entrypoints=websecure"
+        - "traefik.http.routers.budgetpro-static.tls.certresolver=letsencryptresolver"
+
+  frontend:
+    image: ferc33/budgetpro-frontend:latest
+    networks:
+      - network_public
+      - budgetpro-internal
     depends_on:
       - backend
-    networks:
-      - budgetpro_network
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host
-
-volumes:
-  postgres_data:
-    driver: local
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.budgetpro-frontend.rule=Host(`sistema.qeva.xyz`)"
+        - "traefik.http.routers.budgetpro-frontend.entrypoints=websecure"
+        - "traefik.http.routers.budgetpro-frontend.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.budgetpro-frontend.loadbalancer.server.port=80"
 
 networks:
-  budgetpro_network:
-    driver: bridge
+  network_public:
+    external: true
+    name: network_public
+  budgetpro-internal:
+    driver: overlay
+    internal: true
 
+volumes:
+  budgetpro_static:
+    driver: local
+
+secrets:
+  budgetpro_backend_env_v2:
+    external: true

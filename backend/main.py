@@ -1,5 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+
+# Load secrets before importing database
+if os.path.exists("/run/secrets/backend.env"):
+    load_dotenv("/run/secrets/backend.env")
+else:
+    load_dotenv()
+
 from database import engine, Base
 from routers import budgets, budget_items, clients, company
 from fastapi.staticfiles import StaticFiles

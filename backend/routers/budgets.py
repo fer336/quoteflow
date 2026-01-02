@@ -3,16 +3,17 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-from models import Budget, BudgetItem, BudgetStatus
+from models import Budget, BudgetItem, BudgetStatus, Client, User
 from schemas import BudgetCreate, BudgetResponse, BudgetUpdate, BudgetListResponse
 from datetime import datetime
 from services.pdf_generator import create_budget_pdf
+from auth import get_current_user
 
 router = APIRouter()
 
-def generate_budget_id(db: Session) -> str:
-    """Generate next budget ID (PR-001, PR-002, etc.)"""
-    last_budget = db.query(Budget).order_by(Budget.id.desc()).first()
+def generate_budget_id(db: Session, user_id: int) -> str:
+    """Generate next budget ID (PR-001, PR-002, etc.) for a specific user"""
+    last_budget = db.query(Budget).filter(Budget.user_id == user_id).order_by(Budget.id.desc()).first()
     if last_budget and last_budget.budget_id:
         try:
             last_number = int(last_budget.budget_id.split('-')[1])
@@ -24,11 +25,11 @@ def generate_budget_id(db: Session) -> str:
     return f"PR-{new_number:03d}"
 
 @router.post("/", response_model=BudgetResponse)
-def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
+def create_budget(budget: BudgetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Create a new budget with items"""
     
-    # Generate budget ID
-    budget_id = generate_budget_id(db)
+    # Generate budget ID unique for this user
+    budget_id = generate_budget_id(db, current_user.id)
     
     # Calculate total if not manual
     calculated_total = sum(item.amount for item in budget.items)
@@ -37,6 +38,7 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db)):
     # Create budget
     db_budget = Budget(
         budget_id=budget_id,
+        user_id=current_user.id, # Assign to current user
         client=budget.client,
         date=budget.date or datetime.utcnow(),
         validity=budget.validity,
@@ -70,10 +72,11 @@ def list_budgets(
     limit: int = 100, 
     search: str = None,
     status: str = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """List all budgets with optional filtering"""
-    query = db.query(Budget)
+    """List all budgets for current user"""
+    query = db.query(Budget).filter(Budget.user_id == current_user.id)
     
     # Filter by search term
     if search:
@@ -96,17 +99,17 @@ def list_budgets(
     return budgets
 
 @router.get("/{budget_id}", response_model=BudgetResponse)
-def get_budget(budget_id: int, db: Session = Depends(get_db)):
+def get_budget(budget_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get a specific budget by ID"""
-    budget = db.query(Budget).filter(Budget.id == budget_id).first()
+    budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
     if not budget:
         raise HTTPException(status_code=404, detail="Presupuesto no encontrado")
     return budget
 
 @router.put("/{budget_id}", response_model=BudgetResponse)
-def update_budget(budget_id: int, budget_update: BudgetUpdate, db: Session = Depends(get_db)):
+def update_budget(budget_id: int, budget_update: BudgetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Update a budget"""
-    db_budget = db.query(Budget).filter(Budget.id == budget_id).first()
+    db_budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
     if not db_budget:
         raise HTTPException(status_code=404, detail="Presupuesto no encontrado")
     
@@ -130,9 +133,9 @@ def update_budget(budget_id: int, budget_update: BudgetUpdate, db: Session = Dep
     return db_budget
 
 @router.delete("/{budget_id}")
-def delete_budget(budget_id: int, db: Session = Depends(get_db)):
+def delete_budget(budget_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Delete a budget"""
-    db_budget = db.query(Budget).filter(Budget.id == budget_id).first()
+    db_budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
     if not db_budget:
         raise HTTPException(status_code=404, detail="Presupuesto no encontrado")
     
@@ -142,18 +145,22 @@ def delete_budget(budget_id: int, db: Session = Depends(get_db)):
     return {"message": "Presupuesto eliminado exitosamente"}
 
 @router.get("/{budget_id}/pdf")
-def generate_budget_pdf(budget_id: int, db: Session = Depends(get_db)):
-    """Generate and download PDF for a budget"""
-    budget = db.query(Budget).filter(Budget.id == budget_id).first()
+def generate_budget_pdf_endpoint(budget_id: int, download: bool = False, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Generate PDF for a budget"""
+    budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
     if not budget:
         raise HTTPException(status_code=404, detail="Presupuesto no encontrado")
     
-    pdf_buffer = create_budget_pdf(budget)
+    # Fetch client details belonging to this user or generic match
+    client_data = db.query(Client).filter(Client.name == budget.client, Client.user_id == current_user.id).first()
+    
+    pdf_buffer = create_budget_pdf(budget, client_data)
     
     filename = f"Presupuesto_{budget.budget_id}.pdf"
+    disposition = "attachment" if download else "inline"
     
     return StreamingResponse(
         pdf_buffer, 
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f"{disposition}; filename={filename}"}
     )

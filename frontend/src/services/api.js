@@ -9,6 +9,15 @@ const api = axios.create({
   },
 });
 
+// Interceptor para agregar token a cada petición
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Budget endpoints
 export const budgetService = {
   // Get all budgets
@@ -82,6 +91,12 @@ export const clientService = {
   // Create client
   create: async (clientData) => {
     const response = await api.post('/clients/', clientData);
+    return response.data;
+  },
+
+  // Update client
+  update: async (id, clientData) => {
+    const response = await api.put(`/clients/${id}`, clientData);
     return response.data;
   },
 

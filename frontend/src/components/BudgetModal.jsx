@@ -12,10 +12,11 @@ import {
 } from 'lucide-react';
 import { clientService } from '../services/api';
 
-export default function BudgetModal({ onClose, onSubmit }) {
+export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) {
   const [client, setClient] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [validity, setValidity] = useState('15 días');
+  const [status, setStatus] = useState('Pendiente');
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualTotal, setManualTotal] = useState(0);
   const [items, setItems] = useState([{ id: crypto.randomUUID(), description: '', amount: 0 }]);
@@ -25,8 +26,39 @@ export default function BudgetModal({ onClose, onSubmit }) {
   const [showClientDropdown, setShowClientDropdown] = useState(false);
 
   useEffect(() => {
-    loadClients();
-  }, []);
+    if (isOpen) {
+      loadClients();
+      if (initialData) {
+        // Load data for editing
+        setClient(initialData.client);
+        setDate(new Date(initialData.date).toISOString().split('T')[0]);
+        setValidity(initialData.validity || '15 días');
+        setStatus(initialData.status);
+        setIsManualMode(initialData.is_manual_total === 1);
+        setManualTotal(initialData.total);
+        
+        // Transform items from API format to internal format
+        if (initialData.items && initialData.items.length > 0) {
+          setItems(initialData.items.map(i => ({
+            id: crypto.randomUUID(), // New temp ID for frontend management
+            description: i.description,
+            amount: i.amount
+          })));
+        } else {
+          setItems([{ id: crypto.randomUUID(), description: '', amount: 0 }]);
+        }
+      } else {
+        // Reset form for new budget
+        setClient('');
+        setDate(new Date().toISOString().split('T')[0]);
+        setValidity('15 días');
+        setStatus('Pendiente');
+        setIsManualMode(false);
+        setManualTotal(0);
+        setItems([{ id: crypto.randomUUID(), description: '', amount: 0 }]);
+      }
+    }
+  }, [isOpen, initialData]);
 
   const loadClients = async () => {
     try {
@@ -76,6 +108,7 @@ export default function BudgetModal({ onClose, onSubmit }) {
       client,
       date: new Date(date).toISOString(),
       validity,
+      status: initialData ? status : undefined, // Only send status on update
       is_manual_total: isManualMode ? 1 : 0,
       total: isManualMode ? parseFloat(manualTotal) : undefined,
       items: items.map((item, index) => ({
@@ -88,6 +121,8 @@ export default function BudgetModal({ onClose, onSubmit }) {
     onSubmit(budgetData);
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 md:p-4">
       <form 
@@ -98,7 +133,9 @@ export default function BudgetModal({ onClose, onSubmit }) {
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-2">
             <Edit3 className="text-primary-600" size={20} />
-            <h2 className="text-lg font-bold text-slate-800">Nuevo Presupuesto</h2>
+            <h2 className="text-lg font-bold text-slate-800">
+              {initialData ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}
+            </h2>
           </div>
           <button onClick={onClose} type="button" className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
             <X size={20} />
@@ -178,6 +215,22 @@ export default function BudgetModal({ onClose, onSubmit }) {
                 <option>30 días</option>
               </select>
             </div>
+            
+            {/* Status Dropdown - Only visible when editing */}
+            {initialData && (
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Estado</label>
+                <select 
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all appearance-none"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="Aceptado">Aceptado</option>
+                  <option value="Rechazado">Rechazado</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Dynamic Table */}
@@ -311,7 +364,7 @@ export default function BudgetModal({ onClose, onSubmit }) {
               className="flex-[2] py-3 px-4 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={18} />
-              Guardar
+              {initialData ? 'Actualizar' : 'Guardar'}
             </button>
           </div>
         </div>

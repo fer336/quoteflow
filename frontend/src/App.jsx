@@ -2,33 +2,69 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
-  FileText, 
   Trash2, 
   Download,
   Calculator,
-  AlertCircle,
   Users,
-  Settings // Imported Settings icon
+  Settings,
+  Eye,
+  Edit2,
+  Share2,
+  LogOut // Logout icon
 } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
 import BudgetModal from './components/BudgetModal';
 import StatusBadge from './components/StatusBadge';
 import ClientsManager from './components/ClientsManager';
-import SettingsModal from './components/SettingsModal'; // Imported SettingsModal
+import SettingsModal from './components/SettingsModal';
+import LoginPage from './components/LoginPage';
 import { budgetService } from './services/api';
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [budgets, setBudgets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClientsManagerOpen, setIsClientsManagerOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Settings state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // State for Editing
+  const [editingBudget, setEditingBudget] = useState(null);
 
-  // Load budgets from API
+  // Check login on mount
   useEffect(() => {
-    loadBudgets();
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        // Basic check if expired
+        if (decoded.exp * 1000 < Date.now()) {
+          handleLogout();
+        } else {
+          setUser(decoded);
+          loadBudgets();
+        }
+      } catch (e) {
+        handleLogout();
+      }
+    }
   }, []);
+
+  const handleLoginSuccess = (credentialResponse) => {
+    const token = credentialResponse.credential;
+    localStorage.setItem('token', token);
+    const decoded = jwtDecode(token);
+    setUser(decoded);
+    loadBudgets();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setBudgets([]);
+  };
 
   const loadBudgets = async () => {
     try {
@@ -38,20 +74,49 @@ export default function App() {
       setError(null);
     } catch (err) {
       console.error('Error loading budgets:', err);
-      setError('Error al cargar los presupuestos. Verifica que el backend esté ejecutándose.');
+      if (err.response && err.response.status === 401) {
+        handleLogout(); // Force logout if backend rejects token
+      } else {
+        setError('Error al cargar los presupuestos.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const addBudget = async (newBudgetData) => {
+  const handleCreateOrUpdateBudget = async (budgetData) => {
     try {
-      const createdBudget = await budgetService.create(newBudgetData);
-      setBudgets([createdBudget, ...budgets]);
+      if (editingBudget) {
+        // Update existing budget
+        const updated = await budgetService.update(editingBudget.id, budgetData);
+        setBudgets(budgets.map(b => b.id === updated.id ? updated : b));
+      } else {
+        // Create new budget
+        const created = await budgetService.create(budgetData);
+        setBudgets([created, ...budgets]);
+      }
       setIsModalOpen(false);
+      setEditingBudget(null);
     } catch (err) {
-      console.error('Error creating budget:', err);
-      alert('Error al crear el presupuesto');
+      console.error('Error saving budget:', err);
+      alert('Error al guardar el presupuesto');
+    }
+  };
+
+  const openNewBudgetModal = () => {
+    setEditingBudget(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditBudgetModal = async (budget) => {
+    try {
+      // Fetch full details including items before opening modal
+      const fullBudget = await budgetService.getById(budget.id);
+      setEditingBudget(fullBudget);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error('Error fetching budget details:', err);
+      alert('Error al cargar detalles del presupuesto');
     }
   };
 
@@ -67,14 +132,71 @@ export default function App() {
     }
   };
 
-  const handleDownloadPDF = async (id, budgetId) => {
+  const handleViewPDF = (id) => {
+    const url = `${import.meta.env.VITE_API_URL}/budgets/${id}/pdf?token=${localStorage.getItem('token')}`; // Send token in query for browser viewing if needed, but standard auth header is better if using blob
+    // Simplest for now: Open URL. Backend auth might block this if strict.
+    // Ideally: Fetch blob with auth header -> Create Object URL -> Open.
+    // For now, let's try direct open but passing token as query param if backend supports it or relying on cookie (not used here).
+    // Better Approach: Fetch Blob.
+    
+    // Quick Fix: Allow token in query param or just use fetch blob method for "View" as well
+    // Or just accept that "View" might need to handle auth. 
+    // Let's implement fetch-blob-view for maximum security.
+    viewPdfSecurely(id);
+  };
+  
+  const viewPdfSecurely = async (id) => {
     try {
-      // Direct download URL
-      const url = `${import.meta.env.VITE_API_URL}/budgets/${id}/pdf`;
-      window.open(url, '_blank');
-    } catch (err) {
-      console.error('Error generating PDF:', err);
-      alert('Error al descargar el PDF');
+        const response = await budgetService.generatePDF(id);
+        const blob = new Blob([response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    } catch (e) {
+        alert('Error al visualizar PDF');
+    }
+  };
+
+  const handleDownloadPDF = async (id) => {
+    try {
+      // Re-use the secure blob method but trigger download
+      const response = await budgetService.generatePDF(id); // Ensure this returns blob in api.js (it does responseType: blob)
+      // Actually api.js currently returns response.data. If responseType is blob, response.data IS the blob.
+      
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // We don't have filename easily here without headers inspection, but "Presupuesto.pdf" is okay fallback
+      link.setAttribute('download', `Presupuesto_${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error(e);
+      alert('Error al descargar PDF');
+    }
+  };
+
+  const handleSharePDF = async (id, budgetCode, clientName) => {
+    try {
+      const response = await budgetService.generatePDF(id);
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const file = new File([blob], `Presupuesto_${budgetCode}.pdf`, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Presupuesto ${budgetCode}`,
+          text: `Hola ${clientName}, adjunto el presupuesto solicitado.`,
+        });
+      } else {
+         // Fallback link sharing is tricky with secure auth. 
+         // We can't share a localhost/protected URL easily.
+         alert('Compartir directo solo disponible en móviles. Descarga el archivo para enviarlo por WhatsApp Web.');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      alert('No se pudo compartir el archivo.');
     }
   };
 
@@ -82,6 +204,11 @@ export default function App() {
     b.client.toLowerCase().includes(searchTerm.toLowerCase()) || 
     b.budget_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // --- RENDER LOGIN IF NO USER ---
+  if (!user) {
+    return <LoginPage onSuccess={handleLoginSuccess} onError={() => setError('Login Failed')} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20 md:pb-0">
@@ -91,11 +218,16 @@ export default function App() {
           <div className="bg-primary-600 p-2 rounded-lg">
             <Calculator className="text-white w-5 h-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800 hidden md:block">BudgetPro</span>
+          <span className="font-bold text-xl tracking-tight text-slate-800 hidden md:block">Sistema</span>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3">
-          {/* Settings Button */}
+          {/* User Info */}
+          <div className="hidden md:flex items-center gap-2 mr-2 px-3 py-1.5 bg-slate-100 rounded-full">
+            {user.picture && <img src={user.picture} alt="Profile" className="w-6 h-6 rounded-full" />}
+            <span className="text-xs font-bold text-slate-600 max-w-[100px] truncate">{user.name}</span>
+          </div>
+
           <button 
             onClick={() => setIsSettingsOpen(true)}
             className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-all"
@@ -104,7 +236,6 @@ export default function App() {
             <Settings size={20} />
           </button>
 
-          {/* Clients Button */}
           <button 
             onClick={() => setIsClientsManagerOpen(true)}
             className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2"
@@ -112,9 +243,26 @@ export default function App() {
             <Users size={18} />
             <span className="hidden md:inline">Clientes</span>
           </button>
+          
+          <button 
+            onClick={handleLogout}
+            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-full transition-all md:hidden"
+            title="Cerrar Sesión"
+          >
+            <LogOut size={20} />
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="hidden md:flex text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg font-medium transition-all items-center gap-2"
+          >
+            <LogOut size={18} />
+            <span>Salir</span>
+          </button>
+
+          <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block"></div>
 
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openNewBudgetModal}
             className="bg-primary-600 hover:bg-primary-700 text-white px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-sm md:text-base"
           >
             <Plus size={18} />
@@ -126,21 +274,16 @@ export default function App() {
 
       {/* Main Content */}
       <main className="pt-20 md:pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto">
-        <header className="mb-6 md:mb-8">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm md:text-base text-slate-500">Gestiona tus propuestas comerciales.</p>
-        </header>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-            <AlertCircle className="text-red-500 mt-0.5" size={20} />
-            <div>
-              <p className="text-red-800 font-medium">Error de conexión</p>
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
+        <header className="mb-6 md:mb-8 flex justify-between items-end">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Inicio</h1>
+            <p className="text-sm md:text-base text-slate-500">Gestiona tus propuestas comerciales.</p>
           </div>
-        )}
+          {/* Mobile User Info */}
+          <div className="md:hidden flex items-center gap-2">
+            {user.picture && <img src={user.picture} alt="Profile" className="w-8 h-8 rounded-full border border-slate-200" />}
+          </div>
+        </header>
 
         {/* Filters & Search */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -159,7 +302,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mobile Cards View (Visible only on mobile) */}
+        {/* Mobile Cards View */}
         <div className="md:hidden space-y-4">
           {loading ? (
              <div className="text-center py-8">
@@ -188,25 +331,39 @@ export default function App() {
 
               <div className="flex gap-2 mt-4">
                 <button 
-                  onClick={() => handleDownloadPDF(budget.id, budget.budget_id)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50"
+                  onClick={() => handleViewPDF(budget.id)}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary-50 text-primary-700 border border-primary-100 text-sm font-bold hover:bg-primary-100 transition-colors"
                 >
-                  <Download size={16} />
-                  PDF
+                  <Eye size={16} />
+                  Ver
+                </button>
+                <button 
+                  onClick={() => handleSharePDF(budget.id, budget.budget_id, budget.client)}
+                  className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                  title="Compartir por WhatsApp"
+                >
+                  <Share2 size={16} />
+                </button>
+                <button 
+                  onClick={() => openEditBudgetModal(budget)}
+                  className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                  title="Editar"
+                >
+                  <Edit2 size={16} />
                 </button>
                 <button 
                   onClick={() => deleteBudget(budget.id)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 text-red-600 text-sm font-medium hover:bg-red-50"
+                  className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Eliminar"
                 >
                   <Trash2 size={16} />
-                  Eliminar
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Desktop Table View (Hidden on mobile) */}
+        {/* Desktop Table View */}
         <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {loading ? (
             <div className="py-12 text-center">
@@ -243,11 +400,25 @@ export default function App() {
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
-                            onClick={() => handleDownloadPDF(budget.id, budget.budget_id)}
-                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
-                            title="Descargar PDF"
+                            onClick={() => handleViewPDF(budget.id)}
+                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            title="Ver Presupuesto"
                           >
-                            <Download size={16} />
+                            <Eye size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleSharePDF(budget.id, budget.budget_id, budget.client)}
+                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            title="Compartir"
+                          >
+                            <Share2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => openEditBudgetModal(budget)}
+                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            title="Editar Presupuesto"
+                          >
+                            <Edit2 size={16} />
                           </button>
                           <button 
                             onClick={() => deleteBudget(budget.id)}
@@ -264,37 +435,17 @@ export default function App() {
               </table>
             </div>
           )}
-          
-          {!loading && filteredBudgets.length === 0 && (
-            <div className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 text-slate-400 mb-3">
-                <FileText size={24} />
-              </div>
-              <p className="text-slate-500">No se encontraron presupuestos.</p>
-            </div>
-          )}
         </div>
       </main>
 
-      {/* Modal Overlay: New Budget */}
-      {isModalOpen && (
-        <BudgetModal 
-          onClose={() => setIsModalOpen(false)} 
-          onSubmit={addBudget} 
-        />
-      )}
-
-      {/* Modal Overlay: Clients Manager */}
-      <ClientsManager 
-        isOpen={isClientsManagerOpen} 
-        onClose={() => setIsClientsManagerOpen(false)} 
+      <BudgetModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSubmit={handleCreateOrUpdateBudget} 
+        initialData={editingBudget}
       />
-
-      {/* Modal Overlay: Settings (Logo Upload) */}
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
-      />
+      <ClientsManager isOpen={isClientsManagerOpen} onClose={() => setIsClientsManagerOpen(false)} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }
