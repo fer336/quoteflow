@@ -11,6 +11,7 @@ else:
 
 from database import engine, Base
 from routers import budgets, budget_items, clients, company
+from auth import auth_router
 from fastapi.staticfiles import StaticFiles
 import os
 
@@ -47,6 +48,7 @@ app.include_router(budgets.router, prefix="/api/budgets", tags=["budgets"])
 app.include_router(budget_items.router, prefix="/api/budget-items", tags=["budget-items"])
 app.include_router(clients.router, prefix="/api/clients", tags=["clients"])
 app.include_router(company.router, prefix="/api/company", tags=["company"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 @app.get("/")
 def read_root():

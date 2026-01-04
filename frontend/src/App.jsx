@@ -52,12 +52,16 @@ export default function App() {
     }
   }, []);
 
-  const handleLoginSuccess = (credentialResponse) => {
-    const token = credentialResponse.credential;
+  const handleLoginSuccess = (token) => {
     localStorage.setItem('token', token);
-    const decoded = jwtDecode(token);
-    setUser(decoded);
-    loadBudgets();
+    try {
+      const decoded = jwtDecode(token);
+      setUser(decoded);
+      loadBudgets();
+    } catch (e) {
+      console.error("Invalid token", e);
+      handleLogout();
+    }
   };
 
   const handleLogout = () => {

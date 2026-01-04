@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -14,10 +14,12 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    google_id = Column(String, unique=True, index=True)
+    google_id = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String, nullable=True) # Para login con contraseña
     name = Column(String)
     picture = Column(String, nullable=True)
     logo_url = Column(String, nullable=True) # Logo personalizado de la empresa
+    is_active = Column(Boolean, default=True) # Usuario habilitado/deshabilitado
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships

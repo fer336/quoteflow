@@ -2,6 +2,24 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+# --- Users ---
+class UserBase(BaseModel):
+    email: str
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    logo_url: Optional[str] = None
+
+class UserCreate(UserBase):
+    pass
+
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 # --- Clients ---
 class ClientBase(BaseModel):
     name: str

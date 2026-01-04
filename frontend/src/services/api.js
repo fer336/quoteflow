@@ -121,5 +121,32 @@ export const companyService = {
   },
 };
 
+// Auth endpoints
+export const authService = {
+  // Login with email/password
+  login: async (email, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+    
+    const response = await api.post('/auth/login', formData, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+    return response.data;
+  },
+
+  // Login with Google (Swap token)
+  googleLogin: async (googleToken) => {
+    const response = await api.post('/auth/google', { token: googleToken });
+    return response.data;
+  },
+
+  // Get current user info
+  getMe: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  }
+};
+
 export default api;
 
