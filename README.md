@@ -8,7 +8,7 @@ QuoteFlow es una aplicación para gestionar presupuestos comerciales, clientes y
 - **Backend:** FastAPI, SQLAlchemy, Pydantic, python-jose, Passlib
 - **Base de datos:** PostgreSQL
 - **Integraciones:** Google OAuth (popup JS + validación server-side), MinIO para logos/activos
-- **Salida de documentos:** ReportLab para PDFs
+- **Salida de documentos:** WeasyPrint (HTML → PDF) con fallback legacy en ReportLab
 
 ## Capturas de interfaz
 
@@ -24,6 +24,10 @@ QuoteFlow es una aplicación para gestionar presupuestos comerciales, clientes y
 
 ![Modal de presupuesto en QuoteFlow](docs/images/budget-modal.png)
 
+### PDF de presupuesto real
+
+![Ejemplo real del PDF de presupuesto en QuoteFlow](docs/images/pdf-presupuesto-ejemplo-real.png)
+
 ## Requisitos previos
 
 ### Recomendados
@@ -37,6 +41,7 @@ QuoteFlow es una aplicación para gestionar presupuestos comerciales, clientes y
 
 - **PostgreSQL local**: necesario si no vas a usar una base remota existente
 - **MinIO**: solo si necesitás probar subida/lectura de logos de empresa localmente
+- **Dependencias de sistema para WeasyPrint**: necesarias si vas a renderizar PDFs HTML localmente o en contenedor
 
 ## Instalación y ejecución local
 
@@ -47,6 +52,17 @@ cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+Si vas a usar la generación HTML → PDF fuera de Docker, asegurate de tener instaladas también las librerías de sistema que WeasyPrint necesita. En Debian/Ubuntu:
+
+```bash
+sudo apt-get update && sudo apt-get install -y \
+  libcairo2 \
+  libgdk-pixbuf-2.0-0 \
+  libpango-1.0-0 \
+  libpangoft2-1.0-0 \
+  shared-mime-info
 ```
 
 Si además vas a levantar **PostgreSQL local**, creá la base y el usuario antes de arrancar la API:
@@ -82,6 +98,12 @@ Endpoints útiles:
 - API: `http://localhost:8000`
 - Healthcheck: `http://localhost:8000/api/health`
 - Swagger UI: `http://localhost:8000/docs`
+
+### Generación de PDFs
+
+- El endpoint productivo sigue siendo `GET /api/budgets/{id}/pdf` y responde `application/pdf`.
+- El render principal ahora usa template HTML/CSS (`backend/templates/pdf/`) para mayor fidelidad visual.
+- Si WeasyPrint o sus librerías del sistema no están disponibles, el backend mantiene un fallback temporal al generador legacy basado en ReportLab.
 
 ### 2) Frontend
 
