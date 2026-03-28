@@ -124,11 +124,12 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 md:p-4">
-      <form 
-        onSubmit={handleSubmit}
-        className="bg-white w-full h-full md:h-auto md:max-w-3xl md:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:max-h-[90vh]"
-      >
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+      <div className="flex min-h-full items-stretch justify-center p-0 md:items-center md:p-6">
+        <form 
+          onSubmit={handleSubmit}
+          className="bg-white w-full min-h-screen shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:min-h-0 md:max-w-3xl md:my-auto md:max-h-[calc(100dvh-3rem)] md:rounded-2xl"
+        >
         {/* Header - Fixed */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-2">
@@ -143,7 +144,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {/* Top Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="md:col-span-1 relative">
@@ -368,7 +369,8 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
             </button>
           </div>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

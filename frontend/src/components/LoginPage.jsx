@@ -68,8 +68,8 @@ export default function LoginPage({ onSuccess, onError }) {
           <Calculator className="text-white w-8 h-8" />
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Bienvenido al Sistema</h1>
-        <p className="text-slate-500 mb-6">Inicia sesión para gestionar tus presupuestos</p>
+        <h1 className="text-2xl font-bold text-slate-800 mb-2">Bienvenido a QuoteFlow</h1>
+        <p className="text-slate-500 mb-6">Inicia sesión para gestionar presupuestos y propuestas comerciales</p>
 
         {error && (
           <div className="bg-rose-50 border border-rose-200 text-rose-600 p-3 rounded-lg text-sm mb-6 flex items-center gap-2 text-left">
@@ -144,7 +144,7 @@ export default function LoginPage({ onSuccess, onError }) {
         </div>
 
         <p className="mt-8 text-xs text-slate-400">
-          Sistema de Presupuestos &copy; {new Date().getFullYear()}
+          QuoteFlow &copy; {new Date().getFullYear()}
         </p>
       </div>
     </div>

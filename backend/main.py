@@ -19,9 +19,9 @@ import os
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="BudgetPro API",
-    description="Sistema de gestión de presupuestos",
-    version="1.0.0"
+    title="QuoteFlow API",
+    description="Sistema de gestión de presupuestos y propuestas comerciales",
+    version="1.0.0",
 )
 
 # Mount static files
@@ -33,11 +33,10 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
         "https://sistema.qeva.xyz",
-        "http://sistema.qeva.xyz"
+        "http://sistema.qeva.xyz",
     ],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,16 +44,19 @@ app.add_middleware(
 
 # Include routers
 app.include_router(budgets.router, prefix="/api/budgets", tags=["budgets"])
-app.include_router(budget_items.router, prefix="/api/budget-items", tags=["budget-items"])
+app.include_router(
+    budget_items.router, prefix="/api/budget-items", tags=["budget-items"]
+)
 app.include_router(clients.router, prefix="/api/clients", tags=["clients"])
 app.include_router(company.router, prefix="/api/company", tags=["company"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
+
 @app.get("/")
 def read_root():
-    return {"message": "BudgetPro API - Sistema de Presupuestos", "status": "active"}
+    return {"message": "QuoteFlow API - Sistema de Presupuestos", "status": "active"}
+
 
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "database": "connected"}
-

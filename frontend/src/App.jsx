@@ -222,7 +222,7 @@ export default function App() {
           <div className="bg-primary-600 p-2 rounded-lg">
             <Calculator className="text-white w-5 h-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800 hidden md:block">Sistema</span>
+          <span className="font-bold text-xl tracking-tight text-slate-800 hidden md:block">QuoteFlow</span>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3">
@@ -280,8 +280,8 @@ export default function App() {
       <main className="pt-20 md:pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto">
         <header className="mb-6 md:mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Inicio</h1>
-            <p className="text-sm md:text-base text-slate-500">Gestiona tus propuestas comerciales.</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Panel QuoteFlow</h1>
+            <p className="text-sm md:text-base text-slate-500">Gestioná presupuestos y propuestas comerciales desde un solo lugar.</p>
           </div>
           {/* Mobile User Info */}
           <div className="md:hidden flex items-center gap-2">
