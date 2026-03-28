@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presupuesto {{ budget.number }}</title>
+  </head>
+  <body>
+    <main class="document">
+      <header class="header-box">
+        <section class="brand-box">
+          <div class="brand-layout{% if company.logo_data_uri %} brand-layout--with-logo{% endif %}">
+            {% if company.logo_data_uri %}
+            <img src="{{ company.logo_data_uri }}" alt="Logo de la empresa" class="brand-logo-image" />
+            {% else %}
+            <div class="brand-logo-frame brand-logo-frame--placeholder">
+              <span>SIN LOGO</span>
+            </div>
+            {% endif %}
+          </div>
+        </section>
+
+        <section class="letter-box">
+          <strong>{{ budget.document_letter }}</strong>
+        </section>
+
+        <section class="meta-box">
+          <div class="meta-content">
+            <div class="meta-title-row">
+              <strong class="meta-title">Presupuesto</strong>
+            </div>
+            <div class="meta-text-lines" aria-label="Datos del presupuesto">
+              <div class="meta-text-line">
+                <span class="meta-text-label">{{ budget.number_label }}:</span>
+                <span class="meta-text-value">{{ budget.number }}</span>
+              </div>
+              <div class="meta-text-line">
+                <span class="meta-text-label">Fecha:</span>
+                <span class="meta-text-value">{{ budget.date }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </header>
+
+      <section class="client-box">
+        <table class="client-table">
+          <tbody>
+            <tr>
+              <th>Cliente</th>
+              <td>{{ client.name }}</td>
+              <th>Tipo inmueble</th>
+              <td>{{ client.property_type }}</td>
+            </tr>
+            <tr>
+              <th>Dirección</th>
+              <td>{{ client.address }}</td>
+              <th>Teléfono</th>
+              <td>{{ client.phone }}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>{{ client.email }}</td>
+              <th>Validez</th>
+              <td>{{ budget.validity }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="items-box">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            {% if item.description|trim %}
+            <tr>
+              <td>{{ item.description }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="summary-strip summary-strip--total-only">
+        <div class="summary-total">
+          <div class="totals-label">Total</div>
+          <div class="totals-value">{{ budget.total }}</div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
