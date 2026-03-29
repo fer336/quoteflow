@@ -119,6 +119,16 @@ export const companyService = {
     });
     return response.data;
   },
+
+  getLogo: async () => {
+    const response = await api.get('/company/logo', {
+      responseType: 'blob',
+      headers: {
+        Accept: 'image/*',
+      },
+    });
+    return response.data;
+  },
 };
 
 // Auth endpoints
@@ -149,4 +159,3 @@ export const authService = {
 };
 
 export default api;
-

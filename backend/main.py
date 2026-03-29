@@ -9,7 +9,7 @@ if os.path.exists("/run/secrets/backend.env"):
 else:
     load_dotenv()
 
-from database import engine, Base
+from database import engine, Base, ensure_legacy_schema_compatibility
 from routers import budgets, budget_items, clients, company
 from auth import auth_router
 from fastapi.staticfiles import StaticFiles
@@ -17,6 +17,7 @@ import os
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+ensure_legacy_schema_compatibility()
 
 app = FastAPI(
     title="QuoteFlow API",

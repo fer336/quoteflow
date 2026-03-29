@@ -1,0 +1,67 @@
+X
+
+PRESUPUESTO
+N° PR-001
+FECHA
+
+28/03/2026
+
+VALIDEZ
+
+20 días
+
+ESTADO
+
+PENDIENTE
+
+CLIENTE
+
+Cliente Endpoint
+
+TOTAL
+
+$98,765.43
+
+CLIENTE
+
+CLIENTE
+
+Cliente Endpoint
+
+TIPO INMUEBLE
+
+Casa
+
+DIRECCIÓN
+
+Calle Falsa 123
+
+TELÉFONO
+
+11 4444 9999
+
+EMAIL
+
+cliente@endpoint.test
+
+VALIDEZ
+
+20 días
+
+CONDICIÓN DE PAGO
+
+-
+
+Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.
+
+DESCRIPCIÓN
+
+Relevamiento técnico y materiales
+Mano de obra e instalación
+
+TOTAL
+
+$98,765.43
+Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con '-'.
+
+

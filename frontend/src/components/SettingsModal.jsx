@@ -17,12 +17,27 @@ export default function SettingsModal({ isOpen, onClose }) {
   const [status, setStatus] = useState(null); // success | error
   const fileInputRef = useRef(null);
 
+  const revokeObjectUrl = (url) => {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const updateExistingLogo = (nextUrl) => {
+    setExistingLogo((previousUrl) => {
+      if (previousUrl && previousUrl !== nextUrl) {
+        revokeObjectUrl(previousUrl);
+      }
+      return nextUrl;
+    });
+  };
+
   useEffect(() => {
     if (isOpen) {
       // Reset state
       setSelectedFile(null);
       setPreview(null);
-      setExistingLogo(null);
+      updateExistingLogo(null);
       setStatus(null);
       
       // Check for existing logo
@@ -30,15 +45,19 @@ export default function SettingsModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => {
+      revokeObjectUrl(existingLogo);
+    };
+  }, [existingLogo]);
+
   const checkExistingLogo = async () => {
     try {
-      // Add timestamp to bypass cache
-      const url = `${import.meta.env.VITE_API_URL}/company/logo?t=${Date.now()}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        setExistingLogo(url);
-      }
+      const logoBlob = await companyService.getLogo();
+      const logoUrl = URL.createObjectURL(logoBlob);
+      updateExistingLogo(logoUrl);
     } catch (err) {
+      updateExistingLogo(null);
       console.error("Error checking logo", err);
     }
   };
@@ -70,8 +89,7 @@ export default function SettingsModal({ isOpen, onClose }) {
       setStatus('success');
       
       // Refresh existing logo view
-      const url = `${import.meta.env.VITE_API_URL}/company/logo?t=${Date.now()}`;
-      setExistingLogo(url);
+      await checkExistingLogo();
       setPreview(null);
       setSelectedFile(null);
 

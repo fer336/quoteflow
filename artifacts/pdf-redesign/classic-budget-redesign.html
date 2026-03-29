@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presupuesto 000123</title><style>:root {
+  --paper: #ffffff;
+  --ink: #111111;
+  --muted: #4d4d4d;
+  --line: #1a1a1a;
+  --line-soft: #7d7d7d;
+  --shade: #ebebeb;
+}
+
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Arial", "Helvetica", sans-serif;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.document {
+  width: 100%;
+}
+
+.header-box,
+.client-box,
+.conditions-box,
+.items-box {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-collapse: collapse;
+  background: var(--paper);
+}
+
+.header-box {
+  display: table;
+  table-layout: fixed;
+}
+
+.brand-box,
+.letter-box,
+.meta-box {
+  display: table-cell;
+  vertical-align: top;
+  padding: 5px 6px;
+}
+
+.brand-box,
+.letter-box {
+  border-right: 1px solid var(--line);
+}
+
+.brand-box {
+  width: 46%;
+}
+
+.letter-box {
+  width: 11%;
+  text-align: center;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.meta-box {
+  width: 43%;
+}
+
+.brand-layout {
+  display: table;
+  width: 100%;
+}
+
+.brand-mark-cell,
+.brand-copy-cell {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.brand-mark-cell {
+  width: 52px;
+  padding-right: 6px;
+}
+
+.brand-mark-frame {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, #f4f4f4 0%, #d9d9d9 100%);
+  overflow: hidden;
+}
+
+.brand-mark-primary,
+.brand-mark-secondary {
+  position: absolute;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.brand-mark-primary {
+  top: 2px;
+  left: 5px;
+}
+
+.brand-mark-secondary {
+  right: 4px;
+  bottom: 1px;
+}
+
+.brand-copy-cell h1 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.brand-copy-cell p {
+  margin: 2px 0 0;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.letter-caption,
+.section-caption,
+.conditions-label,
+.client-table th,
+.items-table th,
+.meta-table th,
+.totals-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.letter-caption {
+  display: block;
+  margin-top: 1px;
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.letter-box strong {
+  display: block;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  font-size: 26px;
+  line-height: 1;
+  padding: 6px 0 5px;
+}
+
+.meta-title-row {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.meta-title-line {
+  text-align: left;
+}
+
+.meta-title {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.meta-number-line {
+  margin-top: 3px;
+  text-align: right;
+}
+
+.meta-number-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.meta-number-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.meta-table,
+.client-table,
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.meta-table {
+  margin-top: 4px;
+}
+
+.meta-table th,
+.meta-table td,
+.client-table th,
+.client-table td,
+.items-table th,
+.items-table td {
+  border: 1px solid var(--line);
+  padding: 3px 5px;
+}
+
+.meta-table th,
+.client-table th,
+.items-table th,
+.section-caption,
+.totals-label {
+  font-weight: 700;
+  background: var(--shade);
+}
+
+.meta-table th {
+  width: 34%;
+  text-align: left;
+  font-size: 7px;
+}
+
+.meta-table td {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.client-box,
+.conditions-box,
+.items-box,
+.totals-section,
+.footer-note {
+  margin-top: 5px;
+}
+
+.section-caption {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 7px;
+}
+
+.client-table th,
+.client-table td {
+  font-size: 8px;
+}
+
+.client-table th {
+  width: 16%;
+  text-align: left;
+}
+
+.client-table td {
+  width: 34%;
+  font-weight: 700;
+}
+
+.conditions-box {
+  display: table;
+  table-layout: fixed;
+}
+
+.conditions-left,
+.conditions-right {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 4px 6px;
+}
+
+.conditions-left {
+  width: 36%;
+  border-right: 1px solid var(--line);
+}
+
+.conditions-label {
+  display: block;
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.conditions-left strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.conditions-right {
+  font-size: 8px;
+}
+
+.items-table th {
+  text-align: left;
+  font-size: 7px;
+  padding: 4px 6px;
+}
+
+.items-table td {
+  height: 22px;
+  padding: 3px 6px 2px;
+  vertical-align: top;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-top: 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 8px;
+}
+
+.items-table tbody tr:first-child td {
+  border-top: 0;
+}
+
+.items-table tbody tr {
+  page-break-inside: avoid;
+}
+
+.totals-section {
+  text-align: right;
+}
+
+.totals-box {
+  display: inline-block;
+  width: 220px;
+  border: 1px solid var(--line);
+}
+
+.totals-label {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 8px;
+  text-align: left;
+}
+
+.totals-value {
+  padding: 8px 10px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.footer-note {
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.footer-note p {
+  margin: 0;
+}
+</style>
+  </head>
+  <body>
+    <main class="document">
+      <header class="header-box">
+        <section class="brand-box">
+          <div class="brand-layout">
+            <div class="brand-mark-cell">
+              <div class="brand-mark-frame" aria-hidden="true">
+                <span class="brand-mark-primary">F</span>
+                <span class="brand-mark-secondary">H</span>
+              </div>
+            </div>
+
+            <div class="brand-copy-cell">
+              <h1>Ferretería</h1>
+              <p>Materiales y herramientas</p>
+              <p>Comprobante de presupuesto</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="letter-box">
+          <span class="letter-caption">Cod.</span>
+          <strong>X</strong>
+        </section>
+
+        <section class="meta-box">
+          <div class="meta-title-row">
+            <div class="meta-title-line">
+              <strong class="meta-title">Presupuesto</strong>
+            </div>
+            <div class="meta-number-line">
+              <span class="meta-number-label">N°</span>
+              <span class="meta-number-value">000123</span>
+            </div>
+          </div>
+
+          <table class="meta-table">
+            <tbody>
+              <tr>
+                <th>Fecha</th>
+                <td>28/03/2026</td>
+              </tr>
+              <tr>
+                <th>Validez</th>
+                <td>15 días</td>
+              </tr>
+              <tr>
+                <th>Estado</th>
+                <td>Pendiente</td>
+              </tr>
+              <tr>
+                <th>Observ.</th>
+                <td>-</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </header>
+
+      <section class="client-box">
+        <div class="section-caption">Cliente</div>
+        <table class="client-table">
+          <tbody>
+            <tr>
+              <th>Cliente</th>
+              <td>Cliente de prueba</td>
+              <th>Tipo inmueble</th>
+              <td>Casa</td>
+            </tr>
+            <tr>
+              <th>Dirección</th>
+              <td>Av. Siempreviva 742</td>
+              <th>Teléfono</th>
+              <td>11-5555-1234</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>cliente@ejemplo.com</td>
+              <th>Validez</th>
+              <td>15 días</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="conditions-box">
+        <div class="conditions-left">
+          <span class="conditions-label">Condición de pago</span>
+          <strong>Contado / transferencia</strong>
+        </div>
+        <div class="conditions-right">Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.</div>
+      </section>
+
+      <section class="items-box">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td>Instalación eléctrica general en cocina y comedor.</td>
+            </tr>
+            
+            <tr>
+              <td>Colocación de cañerías, llaves térmicas y tomas según plano.</td>
+            </tr>
+            
+            <tr>
+              <td>Revisión final de funcionamiento y entrega.</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </section>
+
+      <section class="totals-section">
+        <div class="totals-box">
+          <div class="totals-label">Total</div>
+          <div class="totals-value">$ 1.250.000,00</div>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        <p>Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con &#39;-&#39;.</p>
+      </footer>
+    </main>
+  </body>
+</html>

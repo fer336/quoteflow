@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presupuesto PR-001</title>
+  <style>:root {
+  --paper: #ffffff;
+  --ink: #111111;
+  --muted: #4d4d4d;
+  --line: #1a1a1a;
+  --line-soft: #7d7d7d;
+  --shade: #ebebeb;
+}
+
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Arial", "Helvetica", sans-serif;
+  font-size: 9px;
+  line-height: 1.15;
+}
+
+.document {
+  width: 100%;
+}
+
+.header-box,
+.client-box,
+.conditions-box,
+.items-box {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-collapse: collapse;
+  background: var(--paper);
+}
+
+.header-box {
+  display: table;
+  table-layout: fixed;
+}
+
+.brand-box,
+.letter-box,
+.meta-box {
+  display: table-cell;
+  vertical-align: top;
+  padding: 5px 6px;
+}
+
+.brand-box,
+.letter-box {
+  border-right: 1px solid var(--line);
+}
+
+.brand-box {
+  width: 46%;
+  padding: 4px 6px;
+}
+
+.letter-box {
+  width: 11%;
+  text-align: center;
+  padding: 4px 3px;
+}
+
+.meta-box {
+  width: 43%;
+}
+
+.brand-layout {
+  display: block;
+  width: 100%;
+  min-height: 58px;
+}
+
+.brand-logo-frame {
+  display: table;
+  width: 100%;
+  height: 58px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.brand-logo-frame--placeholder {
+  text-align: center;
+}
+
+.brand-logo-frame--placeholder span {
+  display: table-cell;
+  vertical-align: middle;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.brand-logo-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.section-caption,
+.conditions-label,
+.client-table th,
+.items-table th,
+.meta-table th,
+.totals-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.letter-box strong {
+  display: table;
+  width: 100%;
+  height: 58px;
+  border: 1px solid var(--line);
+  font-size: 26px;
+  line-height: 58px;
+  font-weight: 700;
+  background: var(--paper);
+}
+
+.meta-title-row {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.meta-title-line {
+  text-align: left;
+}
+
+.meta-title {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.meta-number-line {
+  margin-top: 3px;
+  text-align: right;
+}
+
+.meta-number-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.meta-number-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.meta-table,
+.client-table,
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.meta-table {
+  margin-top: 4px;
+}
+
+.meta-table th,
+.meta-table td,
+.client-table th,
+.client-table td,
+.items-table th,
+.items-table td {
+  border: 1px solid var(--line);
+  padding: 3px 5px;
+}
+
+.meta-table th,
+.client-table th,
+.items-table th,
+.section-caption,
+.totals-label {
+  font-weight: 700;
+  background: var(--shade);
+}
+
+.meta-table th {
+  width: 34%;
+  text-align: left;
+  font-size: 7px;
+}
+
+.meta-table td {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.client-box,
+.conditions-box,
+.items-box,
+.totals-section,
+.footer-note {
+  margin-top: 5px;
+}
+
+.section-caption {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 7px;
+}
+
+.client-table th,
+.client-table td {
+  font-size: 8px;
+}
+
+.client-table th {
+  width: 16%;
+  text-align: left;
+}
+
+.client-table td {
+  width: 34%;
+  font-weight: 700;
+}
+
+.conditions-box {
+  display: table;
+  table-layout: fixed;
+}
+
+.conditions-left,
+.conditions-right {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 4px 6px;
+}
+
+.conditions-left {
+  width: 36%;
+  border-right: 1px solid var(--line);
+}
+
+.conditions-label {
+  display: block;
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.conditions-left strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.conditions-right {
+  font-size: 8px;
+}
+
+.items-table th {
+  text-align: left;
+  font-size: 7px;
+  padding: 4px 6px;
+}
+
+.items-table td {
+  height: 22px;
+  padding: 3px 6px 2px;
+  vertical-align: top;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-top: 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 8px;
+}
+
+.items-table tbody tr:first-child td {
+  border-top: 0;
+}
+
+.items-table tbody tr {
+  page-break-inside: avoid;
+}
+
+.totals-section {
+  text-align: right;
+}
+
+.totals-box {
+  display: inline-block;
+  width: 220px;
+  border: 1px solid var(--line);
+}
+
+.totals-label {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 8px;
+  text-align: left;
+}
+
+.totals-value {
+  padding: 8px 10px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.footer-note {
+  font-size: 7px;
+  color: var(--muted);
+}
+
+.footer-note p {
+  margin: 0;
+}
+</style></head>
+  <body>
+    <main class="document">
+      <header class="header-box">
+        <section class="brand-box">
+          <div class="brand-layout">
+            
+            <div class="brand-logo-frame brand-logo-frame--placeholder">
+              <span>SIN LOGO</span>
+            </div>
+            
+          </div>
+        </section>
+
+        <section class="letter-box">
+          <strong>X</strong>
+        </section>
+
+        <section class="meta-box">
+          <div class="meta-title-row">
+            <div class="meta-title-line">
+              <strong class="meta-title">Presupuesto</strong>
+            </div>
+            <div class="meta-number-line">
+              <span class="meta-number-label">N°</span>
+              <span class="meta-number-value">PR-001</span>
+            </div>
+          </div>
+
+          <table class="meta-table">
+            <tbody>
+              <tr>
+                <th>Fecha</th>
+                <td>28/03/2026</td>
+              </tr>
+              <tr>
+                <th>Validez</th>
+                <td>20 días</td>
+              </tr>
+              <tr>
+                <th>Estado</th>
+                <td>PENDIENTE</td>
+              </tr>
+              <tr>
+                <th>Cliente</th>
+                <td>Cliente Endpoint</td>
+              </tr>
+              <tr>
+                <th>Total</th>
+                <td>$98,765.43</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </header>
+
+      <section class="client-box">
+        <div class="section-caption">Cliente</div>
+        <table class="client-table">
+          <tbody>
+            <tr>
+              <th>Cliente</th>
+              <td>Cliente Endpoint</td>
+              <th>Tipo inmueble</th>
+              <td>Casa</td>
+            </tr>
+            <tr>
+              <th>Dirección</th>
+              <td>Calle Falsa 123</td>
+              <th>Teléfono</th>
+              <td>11 4444 9999</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td>cliente@endpoint.test</td>
+              <th>Validez</th>
+              <td>20 días</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="conditions-box">
+        <div class="conditions-left">
+          <span class="conditions-label">Condición de pago</span>
+          <strong>-</strong>
+        </div>
+        <div class="conditions-right">Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.</div>
+      </section>
+
+      <section class="items-box">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td>Relevamiento técnico y materiales</td>
+            </tr>
+            
+            <tr>
+              <td>Mano de obra e instalación</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+            <tr>
+              <td>&nbsp;</td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </section>
+
+      <section class="totals-section">
+        <div class="totals-box">
+          <div class="totals-label">Total</div>
+          <div class="totals-value">$98,765.43</div>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        <p>Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con &#39;-&#39;.</p>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
@@ -11,26 +11,56 @@ else:
     load_dotenv()
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://user:password@localhost:5432/budgetpro_db"
+    "DATABASE_URL", "postgresql://user:password@localhost:5432/budgetpro_db"
 )
 
-# Create engine with connection pooling for remote database
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,  # Verify connections before using them
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=3600,  # Recycle connections after 1 hour
-    connect_args={
-        "connect_timeout": 10,
-        "options": "-c timezone=utc"
+
+def _build_engine(url: str):
+    """Create engine with settings compatible with the configured database."""
+    base_options = {
+        "pool_pre_ping": True,
     }
-)
+
+    if url.startswith("sqlite"):
+        return create_engine(
+            url,
+            connect_args={"check_same_thread": False},
+            **base_options,
+        )
+
+    return create_engine(
+        url,
+        pool_size=10,
+        max_overflow=20,
+        pool_recycle=3600,
+        connect_args={"connect_timeout": 10, "options": "-c timezone=utc"},
+        **base_options,
+    )
+
+
+engine = _build_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+def ensure_legacy_schema_compatibility():
+    """Apply safe additive schema updates required for legacy databases."""
+    inspector = inspect(engine)
+    table_names = set(inspector.get_table_names())
+
+    if "clients" not in table_names:
+        return
+
+    client_columns = {column["name"] for column in inspector.get_columns("clients")}
+
+    if "tipo_inmueble" not in client_columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
+            )
+
 
 # Dependency
 def get_db():
@@ -39,4 +69,3 @@ def get_db():
         yield db
     finally:
         db.close()
-

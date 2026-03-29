@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+
 # --- Users ---
 class UserBase(BaseModel):
     email: str
@@ -9,30 +10,37 @@ class UserBase(BaseModel):
     picture: Optional[str] = None
     logo_url: Optional[str] = None
 
+
 class UserCreate(UserBase):
     pass
+
 
 class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
+
 
 # --- Clients ---
 class ClientBase(BaseModel):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
+    tipo_inmueble: Optional[str] = None
     address: Optional[str] = None
     tax_id: Optional[str] = None
+
 
 class ClientCreate(ClientBase):
     pass
 
+
 class ClientUpdate(ClientBase):
     name: Optional[str] = None
+
 
 class ClientResponse(ClientBase):
     id: int
@@ -41,14 +49,17 @@ class ClientResponse(ClientBase):
     class Config:
         from_attributes = True
 
+
 # --- Budget Items ---
 class BudgetItemBase(BaseModel):
     description: str
     amount: float = 0.0
     order_index: int = 0
 
+
 class BudgetItemCreate(BudgetItemBase):
     pass
+
 
 class BudgetItemResponse(BudgetItemBase):
     id: int
@@ -58,6 +69,7 @@ class BudgetItemResponse(BudgetItemBase):
     class Config:
         from_attributes = True
 
+
 # --- Budgets ---
 class BudgetBase(BaseModel):
     client: str
@@ -65,9 +77,11 @@ class BudgetBase(BaseModel):
     is_manual_total: int = 0
     total: Optional[float] = None
 
+
 class BudgetCreate(BudgetBase):
     date: Optional[datetime] = None
     items: List[BudgetItemCreate] = []
+
 
 class BudgetUpdate(BaseModel):
     client: Optional[str] = None
@@ -75,6 +89,7 @@ class BudgetUpdate(BaseModel):
     status: Optional[str] = None
     total: Optional[float] = None
     is_manual_total: Optional[int] = None
+
 
 class BudgetResponse(BudgetBase):
     id: int
@@ -88,6 +103,7 @@ class BudgetResponse(BudgetBase):
 
     class Config:
         from_attributes = True
+
 
 class BudgetListResponse(BaseModel):
     id: int

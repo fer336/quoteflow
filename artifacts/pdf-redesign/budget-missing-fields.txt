@@ -1,0 +1,54 @@
+PRESUPUESTO
+
+Presupuesto comercial
+
+N° -
+
+Documento generado por el sistema
+
+Fecha: 28/03/2026
+
+DATOS DEL CLIENTE
+
+CLIENTE
+
+DIRECCIÓN
+
+-
+
+-
+
+TIPO INMUEBLE
+
+EMAIL
+
+-
+
+-
+
+TELÉFONO
+
+VALIDEZ
+
+-
+
+-
+
+ESTADO
+
+-
+
+ÍTEM
+-
+
+DESCRIPCIÓN
+-
+
+SUBTOTAL
+-
+
+TOTAL
+
+$0.00
+
+

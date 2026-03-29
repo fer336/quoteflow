@@ -7,6 +7,8 @@ pydantic==2.10.5
 pydantic-core==2.27.2
 alembic==1.14.0
 reportlab==4.0.9
+Jinja2==3.1.6
+weasyprint==66.0
 google-auth==2.26.1
 google-auth-oauthlib==1.2.0
 python-jose[cryptography]==3.3.0

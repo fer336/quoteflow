@@ -9,7 +9,9 @@ import {
   Mail,
   Phone,
   FileText,
-  Edit2
+  Edit2,
+  Building2,
+  MapPin
 } from 'lucide-react';
 import { clientService } from '../services/api';
 
@@ -25,6 +27,8 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
     name: '',
     email: '',
     phone: '',
+    tipo_inmueble: '',
+    address: '',
     tax_id: ''
   });
 
@@ -52,6 +56,8 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
       name: client.name,
       email: client.email || '',
       phone: client.phone || '',
+      tipo_inmueble: client.tipo_inmueble || '',
+      address: client.address || '',
       tax_id: client.tax_id || ''
     });
     setEditingId(client.id);
@@ -78,7 +84,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
   };
 
   const resetForm = () => {
-    setNewClient({ name: '', email: '', phone: '', tax_id: '' });
+    setNewClient({ name: '', email: '', phone: '', tipo_inmueble: '', address: '', tax_id: '' });
     setEditingId(null);
     setShowForm(false);
   };
@@ -194,6 +200,32 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                     placeholder="+54 9 11..."
                     value={newClient.phone}
                     onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo inmueble</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                  <input 
+                    type="text" 
+                    className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-md focus:ring-1 focus:ring-primary-500 outline-none"
+                    placeholder="Casa, departamento, local..."
+                    value={newClient.tipo_inmueble}
+                    onChange={(e) => setNewClient({...newClient, tipo_inmueble: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Dirección</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                  <input 
+                    type="text" 
+                    className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-md focus:ring-1 focus:ring-primary-500 outline-none"
+                    placeholder="Calle, número, localidad"
+                    value={newClient.address}
+                    onChange={(e) => setNewClient({...newClient, address: e.target.value})}
                   />
                 </div>
               </div>

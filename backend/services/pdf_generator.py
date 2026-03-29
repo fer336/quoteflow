@@ -1,180 +1,217 @@
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import cm
-from io import BytesIO
+import base64
+import logging
+import mimetypes
 from datetime import datetime
-import os
+from io import BytesIO
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 from services import storage
+from services.pdf_generator_legacy import create_budget_pdf_legacy
 
-def create_budget_pdf(budget, client_data=None):
-    buffer = BytesIO()
-    # Márgenes ajustados: Top reducido a 1cm para subir todo
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=2*cm, leftMargin=2*cm,
-                            topMargin=1*cm, bottomMargin=2*cm)
-    
-    story = []
-    styles = getSampleStyleSheet()
-    
-    # --- Definición de Colores ---
-    PRIMARY_COLOR = colors.HexColor('#1e40af') # Azul Profesional
-    
-    # --- Estilos Personalizados ---
-    title_style = ParagraphStyle(
-        'Title',
-        parent=styles['Heading1'],
-        fontSize=24,
-        textColor=PRIMARY_COLOR,
-        spaceAfter=12,
-        alignment=1 # Center
+
+logger = logging.getLogger(__name__)
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATE_DIR = BASE_DIR / "templates" / "pdf"
+TEMPLATE_NAME = "budget.html"
+STYLESHEET_PATH = TEMPLATE_DIR / "budget.css"
+
+STATUS_CLASS_MAP = {
+    "pendiente": "pendiente",
+    "aceptado": "aceptado",
+    "rechazado": "rechazado",
+}
+
+template_env = Environment(
+    loader=FileSystemLoader(TEMPLATE_DIR),
+    autoescape=select_autoescape(["html", "xml"]),
+)
+
+
+def _safe_value(value, fallback="-"):
+    if value is None:
+        return fallback
+
+    if isinstance(value, str):
+        cleaned = value.strip()
+        return cleaned or fallback
+
+    return str(value)
+
+
+def _format_currency(value):
+    amount = value or 0
+    return f"${amount:,.2f}"
+
+
+def _format_date(value):
+    if value:
+        return value.strftime("%d/%m/%Y")
+    return datetime.now().strftime("%d/%m/%Y")
+
+
+def _clean_item_description(value):
+    if value is None:
+        return ""
+
+    if isinstance(value, str):
+        return value.strip()
+
+    return str(value).strip()
+
+
+def _status_value(budget):
+    raw_status = getattr(
+        getattr(budget, "status", None), "value", getattr(budget, "status", None)
     )
-    
-    label_style = ParagraphStyle(
-        'Label',
-        parent=styles['Normal'],
-        fontSize=10,
-        fontName='Helvetica-Bold',
-        textColor=colors.black
-    )
-    
-    value_style = ParagraphStyle(
-        'Value',
-        parent=styles['Normal'],
-        fontSize=10,
-        fontName='Helvetica',
-        textColor=colors.black
-    )
-    
-    # --- Logo ---
+    status = _safe_value(raw_status, "Pendiente")
+    return status, STATUS_CLASS_MAP.get(status.lower(), "pendiente")
+
+
+def _company_initials(name):
+    words = [word[0] for word in _safe_value(name, "PC").split() if word]
+    initials = "".join(words[:2]).upper()
+    return initials or "PC"
+
+
+def _company_display_name(user):
+    for attribute in ("business_name", "company_name", "trade_name", "commercial_name"):
+        value = _safe_value(getattr(user, attribute, None), "")
+        if value:
+            return value
+
+    return "Presupuestos"
+
+
+def _guess_logo_mime_type(logo_url, content_type):
+    normalized_content_type = (content_type or "").lower().strip()
+    if normalized_content_type in {"image/png", "image/jpeg", "image/jpg"}:
+        return (
+            "image/jpeg"
+            if normalized_content_type == "image/jpg"
+            else normalized_content_type
+        )
+
+    guessed_type, _ = mimetypes.guess_type(logo_url or "")
+    if guessed_type in {"image/png", "image/jpeg"}:
+        return guessed_type
+
+    return None
+
+
+def _resolve_logo_data_uri(budget):
+    logo_url = getattr(getattr(budget, "user", None), "logo_url", None)
+    if not logo_url:
+        return None
+
     try:
-        # Intentar obtener logo de MinIO si el usuario tiene uno configurado
-        logo_content = None
-        if budget.user and budget.user.logo_url:
-            logo_content = storage.get_file_content(budget.user.logo_url)
-        
-        if logo_content:
-            logo_io = BytesIO(logo_content)
-            img = Image(logo_io)
-            
-            img_width = img.drawWidth
-            img_height = img.drawHeight
-            aspect = img_height / float(img_width)
-            
-            # Max 5cm ancho x 1.5cm alto (Más pequeño y sutil)
-            max_width = 5 * cm
-            max_height = 1.5 * cm
-            
-            display_width = max_width
-            display_height = display_width * aspect
-            
-            if display_height > max_height:
-                display_height = max_height
-                display_width = display_height / aspect
-            
-            img.drawHeight = display_height
-            img.drawWidth = display_width
-            img.hAlign = 'CENTER'
-            
-            story.append(img)
-            story.append(Spacer(1, 0.1*cm)) # Espacio reducido tras logo
-    except Exception as e:
-        print(f"Error cargando logo: {e}")
-    
-    # --- Título Principal ---
-    # Tamaño ajustado para uniformidad (fontSize=11, spaceAfter reducido)
-    story.append(Paragraph(f"PRESUPUESTO Nº: {budget.budget_id}", 
-                 ParagraphStyle('BudgetTitle', parent=styles['Heading2'], alignment=1, spaceAfter=8, fontSize=11, fontName='Helvetica-Bold', textColor=colors.black)))
-    
-    # --- Datos del Cliente y Presupuesto ---
-    budget_date = budget.date.strftime("%d/%m/%Y")
-    client_phone = client_data.phone if client_data and client_data.phone else "-"
-    client_email = client_data.email if client_data and client_data.email else "-"
-    
-    # Datos organizados para que coincidan con el diseño
-    # Fila 1: Cliente | Fecha
-    # Fila 2: Teléfono | Validez
-    # Fila 3: Email    | Estado
-    
-    # Función helper para formatear pares Clave: Valor
-    def row_pair(label1, val1, label2, val2):
-        return [
-            Paragraph(f"<b>{label1}</b> {val1}", styles['Normal']),
-            Paragraph(f"<b>{label2}</b> {val2}", styles['Normal'])
-        ]
+        logo_bytes, content_type = storage.get_file_content_with_metadata(logo_url)
+        if not logo_bytes:
+            return None
 
-    info_data = [
-        row_pair("Cliente:", budget.client, "Fecha:", budget_date),
-        row_pair("Teléfono:", client_phone, "Validez:", budget.validity),
-        row_pair("Email:", client_email, "Estado:", budget.status.value)
-    ]
-    
-    t_info = Table(info_data, colWidths=[9*cm, 8*cm])
-    t_info.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('LEFTPADDING', (0,0), (-1,-1), 0),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-    ]))
-    
-    story.append(t_info)
-    story.append(Spacer(1, 0.5*cm))
-    
-    # --- Tabla de Items ---
-    # Encabezados
-    data = [[
-        Paragraph('DESCRIPCIÓN DEL TRABAJO / MATERIALES', ParagraphStyle('TH', fontName='Helvetica-Bold', fontSize=10, textColor=colors.white, alignment=1)),
-        Paragraph('SUBTOTAL', ParagraphStyle('TH_R', fontName='Helvetica-Bold', fontSize=10, textColor=colors.white, alignment=2))
-    ]]
-    
-    # Filas de items
-    for item in budget.items:
-        # Si el monto es 0, mostramos vacío en lugar de $0.00
-        amount_str = "" if item.amount == 0 else f"${item.amount:,.2f}"
-        
-        data.append([
-            Paragraph(item.description, styles['Normal']),
-            amount_str
-        ])
-    
-    # Fila de Total (sin relleno de filas vacías)
-    data.append([
-        'TOTAL A PAGAR', 
-        f"${budget.total:,.2f}"
-    ])
-    
-    t_items = Table(data, colWidths=[13.5*cm, 3.5*cm])
-    
-    t_items.setStyle(TableStyle([
-        # --- Encabezado ---
-        ('BACKGROUND', (0,0), (-1,0), PRIMARY_COLOR),
-        ('TOPPADDING', (0,0), (-1,0), 8),
-        ('BOTTOMPADDING', (0,0), (-1,0), 8),
-        
-        # --- Cuerpo ---
-        ('BACKGROUND', (0,1), (-1,-2), colors.HexColor('#f8fafc')), # Gris muy claro
-        ('GRID', (0,0), (-1,-2), 0.5, colors.lightgrey),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('ALIGN', (1,1), (1,-1), 'RIGHT'), # Montos alineados derecha
-        ('FONTNAME', (0,1), (-1,-2), 'Helvetica'),
-        ('FONTSIZE', (0,1), (-1,-2), 9),
-        ('TOPPADDING', (0,1), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,1), (-1,-1), 6),
-        
-        # --- Fila Total ---
-        ('TEXTCOLOR', (0,-1), (-1,-1), PRIMARY_COLOR),
-        ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,-1), (-1,-1), 11),
-        ('ALIGN', (0,-1), (0,-1), 'LEFT'),  # Label "TOTAL A PAGAR" a la izquierda
-        ('ALIGN', (1,-1), (1,-1), 'RIGHT'), # Valor a la derecha
-        ('TOPPADDING', (0,-1), (-1,-1), 10),
-        ('BOTTOMPADDING', (0,-1), (-1,-1), 10),
-        ('LINEABOVE', (0,-1), (-1,-1), 1.5, PRIMARY_COLOR), # Línea azul gruesa arriba del total
-        ('LINEBELOW', (0,-1), (-1,-1), 1.5, PRIMARY_COLOR), # Línea azul gruesa abajo del total
-    ]))
-    
-    story.append(t_items)
-    
-    doc.build(story)
+        mime_type = _guess_logo_mime_type(logo_url, content_type)
+        if not mime_type:
+            logger.warning(
+                "Logo ignorado para PDF HTML por tipo no soportado. logo_url=%s content_type=%s",
+                logo_url,
+                content_type,
+            )
+            return None
+
+        encoded_logo = base64.b64encode(logo_bytes).decode("ascii")
+        return f"data:{mime_type};base64,{encoded_logo}"
+    except Exception as error:
+        logger.warning(
+            "Error cargando logo para PDF HTML. logo_url=%s error=%s",
+            logo_url,
+            error,
+        )
+        return None
+
+
+def _build_items_context(budget):
+    sorted_items = sorted(
+        getattr(budget, "items", []) or [],
+        key=lambda item: (getattr(item, "order_index", 0), getattr(item, "id", 0)),
+    )
+
+    items = []
+    for item in sorted_items:
+        description = _clean_item_description(getattr(item, "description", None))
+        if description:
+            items.append({"description": description})
+
+    return items
+
+
+def _build_context(budget, client_data=None):
+    user = getattr(budget, "user", None)
+    company_name = _safe_value(getattr(user, "name", None), "Presupuesto comercial")
+    status, status_slug = _status_value(budget)
+
+    return {
+        "company": {
+            "name": company_name,
+            "display_name": _company_display_name(user),
+            "initials": _company_initials(company_name),
+            "logo_data_uri": _resolve_logo_data_uri(budget),
+        },
+        "budget": {
+            "number": _safe_value(getattr(budget, "budget_id", None)),
+            "number_label": "NÚM. PRESUPUESTO",
+            "date": _format_date(getattr(budget, "date", None)),
+            "validity": _safe_value(getattr(budget, "validity", None)),
+            "status": status,
+            "status_slug": status_slug,
+            "total": _format_currency(getattr(budget, "total", 0)),
+            "document_letter": "X",
+            "payment_terms": "-",
+            "notice": "Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.",
+        },
+        "client": {
+            "name": _safe_value(getattr(budget, "client", None)),
+            "address": _safe_value(getattr(client_data, "address", None)),
+            "property_type": _safe_value(getattr(client_data, "tipo_inmueble", None)),
+            "email": _safe_value(getattr(client_data, "email", None)),
+            "phone": _safe_value(getattr(client_data, "phone", None)),
+        },
+        "items": _build_items_context(budget),
+        "footer": {
+            "note": "Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con '-'.",
+        },
+    }
+
+
+def _render_html(context):
+    template = template_env.get_template(TEMPLATE_NAME)
+    return template.render(**context)
+
+
+def _render_pdf_with_weasyprint(html_content):
+    try:
+        from weasyprint import CSS, HTML
+    except ImportError as error:
+        raise RuntimeError("WeasyPrint no está instalado en el entorno") from error
+
+    pdf_bytes = HTML(string=html_content, base_url=str(TEMPLATE_DIR)).write_pdf(
+        stylesheets=[CSS(filename=str(STYLESHEET_PATH))]
+    )
+    buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
+
+
+def create_budget_pdf(budget, client_data=None):
+    context = _build_context(budget, client_data)
+    html_content = _render_html(context)
+
+    try:
+        return _render_pdf_with_weasyprint(html_content)
+    except Exception as error:
+        logger.warning(
+            "No se pudo generar PDF con HTML->PDF. Se usa fallback legacy. error=%s",
+            error,
+        )
+        return create_budget_pdf_legacy(budget, client_data)

@@ -9,11 +9,17 @@ WORKDIR /app
 # gcc: para compilar
 # python3-dev: cabeceras de python
 # libffi-dev: para criptografía (passlib/bcrypt)
+# libcairo2/libpango*/libgdk-pixbuf/shared-mime-info: runtime requerido por WeasyPrint
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
     python3-dev \
     libffi-dev \
+    libcairo2 \
+    libgdk-pixbuf-2.0-0 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar requirements e instalar dependencias

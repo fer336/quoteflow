@@ -251,6 +251,64 @@ Conviene crear una **baseline Alembic** y pasar a migraciones explícitas antes 
 
 Hasta que eso exista, cualquier cambio de esquema debe hacerse con MUCHO cuidado porque el arranque automático no reemplaza un historial de migraciones serio.
 
+## Deploy de imágenes Docker
+
+### Script local rápido
+
+Se agregó `scripts/deploy-images.sh` para construir y subir backend + frontend en una sola corrida.
+
+> Ojo: el script versionado del repo es `scripts/deploy-images.sh`. En la raíz no existe `./deploy-images.sh`, salvo que vos te hayas creado un wrapper local.
+
+```bash
+chmod +x scripts/deploy-images.sh
+DOCKER_USERNAME=ferc33 \
+./scripts/deploy-images.sh --tag v2026-03-28-2231
+```
+
+Flags soportados:
+
+- `--tag <tag>`: cambia el tag de ambas imágenes
+- `--no-cache`: fuerza build sin cache
+
+Variables relevantes:
+
+- `DOCKER_USERNAME` o `DOCKERHUB_USERNAME`: usuario/org de Docker Hub
+- `IMAGE_TAG`: opcional, default `v2026-03-28-2231`
+- `FRONTEND_API_URL` o `VITE_API_URL`: default `https://sistema.qeva.xyz/api`
+- `FRONTEND_GOOGLE_CLIENT_ID` o `VITE_GOOGLE_CLIENT_ID`: si no están definidas en la shell, el script intenta leer `VITE_GOOGLE_CLIENT_ID` desde `.env` y luego desde `frontend/.env`; si tampoco existe, recién ahí falla con error claro
+
+Ejemplos válidos:
+
+```bash
+./scripts/deploy-images.sh --tag v2026-03-28-2231
+
+VITE_GOOGLE_CLIENT_ID=tu_google_client_id.apps.googleusercontent.com \
+./scripts/deploy-images.sh --tag v2026-03-28-2231
+```
+
+> Antes de correrlo, asegurate de estar autenticado en Docker Hub con `docker login`.
+
+### GitHub Actions manual
+
+También se agregó `.github/workflows/deploy-images.yml` con `workflow_dispatch` para correr el deploy manualmente desde la pestaña **Actions** de GitHub.
+
+Secrets requeridos del repo:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+- `GOOGLE_CLIENT_ID` (opcional si lo vas a pasar como input manual)
+
+Inputs disponibles al disparar el workflow:
+
+- `tag`
+- `no_cache`
+- `api_url`
+- `google_client_id`
+
+Si `google_client_id` viene vacío, el workflow intenta usar `secrets.GOOGLE_CLIENT_ID`.
+
+Recomendación práctica: publicá siempre las imágenes con un tag versionado (por ejemplo `v2026-03-28-2231`) y, si querés un puntero estable para consumo rápido, publicá también `latest`.
+
 ## Troubleshooting
 
 ### Puerto ocupado

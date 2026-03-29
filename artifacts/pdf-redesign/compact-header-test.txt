@@ -1,0 +1,70 @@
+DOCUMENTO
+
+A
+SIN LOGO
+
+PRESUPUESTOS
+DOCUMENTO COMERCIAL INTERNO
+
+X
+
+COMPROBANTE INTERNO
+
+PRESUPUESTO
+Número
+
+P-00123
+
+Fecha
+
+28/03/2026
+
+Validez
+
+15 días
+
+Estado
+
+Pendiente
+
+DATOS DEL CLIENTE
+CLIENTE
+
+Cliente Demo
+
+TIPO INMUEBLE
+
+Casa
+
+DIRECCIÓN
+
+Calle Falsa 123
+
+TELÉFONO
+
+11-5555-5555
+
+EMAIL
+
+cliente@example.com
+
+OBSERVACIÓN
+
+-
+
+CONDICIÓN DE PAGO
+
+-
+
+Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.
+
+DESCRIPCIÓN
+
+Instalación y mano de obra
+
+TOTAL
+Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con '-'.
+
+$150,000.00
+
+
