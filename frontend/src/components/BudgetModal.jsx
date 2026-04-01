@@ -8,6 +8,7 @@ import {
   Edit3,
   Search,
   User,
+  ChevronUp,
   ChevronDown
 } from 'lucide-react';
 import { clientService } from '../services/api';
@@ -83,6 +84,15 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
     if (items.length > 1) {
       setItems(items.filter(item => item.id !== id));
     }
+  };
+
+  const moveItem = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+
+    const reordered = [...items];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    setItems(reordered);
   };
 
   // Update item field
@@ -251,7 +261,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
                 <thead className="bg-slate-50 border-b border-slate-200 hidden md:table-header-group">
                   <tr>
                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase">Descripción</th>
-                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-32">Monto ($)</th>
+                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-24 text-center">Orden</th>
                     <th className="px-4 py-2 w-12"></th>
                   </tr>
                 </thead>
@@ -269,15 +279,29 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
                         />
                       </td>
                       <td className="md:p-2 block md:table-cell mb-2 md:mb-0">
-                        <label className="md:hidden text-xs font-bold text-slate-400 uppercase mb-1 block">Monto</label>
-                        <input 
-                          type="number" 
-                          step="0.01"
-                          disabled={isManualMode}
-                          className={`w-full px-3 py-1.5 text-sm md:text-right border border-slate-200 md:border-transparent focus:border-primary-200 rounded-md outline-none transition-all ${isManualMode ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-transparent'}`}
-                          value={item.amount || ''}
-                          onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
-                        />
+                        <label className="md:hidden text-xs font-bold text-slate-400 uppercase mb-1 block">Orden</label>
+                        <div className="flex items-center justify-start md:justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => moveItem(index, -1)}
+                            disabled={index === 0}
+                            aria-label="Mover renglón hacia arriba"
+                            title="Mover renglón hacia arriba"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-slate-400 disabled:hover:bg-transparent"
+                          >
+                            <ChevronUp size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveItem(index, 1)}
+                            disabled={index === items.length - 1}
+                            aria-label="Mover renglón hacia abajo"
+                            title="Mover renglón hacia abajo"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-slate-400 disabled:hover:bg-transparent"
+                          >
+                            <ChevronDown size={14} />
+                          </button>
+                        </div>
                       </td>
                       <td className="md:p-2 text-right block md:table-cell">
                         <button 

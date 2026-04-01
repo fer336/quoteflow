@@ -85,10 +85,12 @@ class BudgetCreate(BudgetBase):
 
 class BudgetUpdate(BaseModel):
     client: Optional[str] = None
+    date: Optional[datetime] = None
     validity: Optional[str] = None
     status: Optional[str] = None
     total: Optional[float] = None
     is_manual_total: Optional[int] = None
+    items: Optional[List[BudgetItemCreate]] = None
 
 
 class BudgetResponse(BudgetBase):
