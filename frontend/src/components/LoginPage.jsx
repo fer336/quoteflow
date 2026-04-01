@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { Calculator, AlertCircle, Loader2 } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
 import { authService } from '../services/api';
 
 export default function LoginPage({ onSuccess, onError }) {
@@ -8,13 +9,48 @@ export default function LoginPage({ onSuccess, onError }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(null);
 
   const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setError(null);
+
+      if (!credentialResponse?.credential) {
+        setError('Google no devolvió una credencial válida. Inténtalo de nuevo.');
+        if (onError) onError();
+        return;
+      }
+
+      const googleUser = jwtDecode(credentialResponse.credential);
+      if (!googleUser?.email) {
+        setError('No pudimos identificar el email de la cuenta de Google.');
+        if (onError) onError();
+        return;
+      }
+
+      setPendingGoogleAuth({
+        credential: credentialResponse.credential,
+        email: googleUser.email,
+        name: googleUser.name,
+      });
+    } catch (err) {
+      console.error('Google Login Decode Error:', err);
+      setError('No pudimos validar la cuenta elegida en Google. Inténtalo de nuevo.');
+      if (onError) onError();
+    }
+  };
+
+  const handleConfirmGoogleLogin = async () => {
+    if (!pendingGoogleAuth?.credential) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       // Canjeamos el token de Google por nuestro JWT interno
-      const data = await authService.googleLogin(credentialResponse.credential);
+      const data = await authService.googleLogin(pendingGoogleAuth.credential);
+      setPendingGoogleAuth(null);
       onSuccess(data.access_token);
     } catch (err) {
       console.error('Google Login Error:', err);
@@ -30,6 +66,11 @@ export default function LoginPage({ onSuccess, onError }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelGoogleLogin = () => {
+    setPendingGoogleAuth(null);
+    setError('Inicio de sesión con Google cancelado. No se guardó ninguna sesión.');
   };
 
   const handleEmailLogin = async (e) => {
@@ -142,6 +183,34 @@ export default function LoginPage({ onSuccess, onError }) {
                 />
             )}
         </div>
+
+        {pendingGoogleAuth && (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
+            <p className="text-sm font-semibold text-amber-900 mb-1">Confirmá la cuenta de Google antes de entrar</p>
+            <p className="text-sm text-amber-800 mb-3">
+              Vas a ingresar con <span className="font-semibold">{pendingGoogleAuth.email}</span>
+              {pendingGoogleAuth.name ? ` (${pendingGoogleAuth.name})` : ''}. Si no es tu cuenta, cancelá ahora y elegí otra.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleConfirmGoogleLogin}
+                disabled={loading}
+                className="flex-1 bg-amber-600 text-white font-semibold py-2 rounded-lg hover:bg-amber-700 transition-all disabled:opacity-60"
+              >
+                Confirmar y continuar
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelGoogleLogin}
+                disabled={loading}
+                className="flex-1 border border-amber-300 text-amber-900 font-semibold py-2 rounded-lg hover:bg-amber-100 transition-all disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
 
         <p className="mt-8 text-xs text-slate-400">
           QuoteFlow &copy; {new Date().getFullYear()}
