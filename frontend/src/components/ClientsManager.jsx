@@ -14,6 +14,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { clientService } from '../services/api';
+import { useProductTour } from '../tours/productTour';
 
 export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
   const [clients, setClients] = useState([]);
@@ -21,6 +22,10 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const { startTour: startClientsTour } = useProductTour('clientes', {
+    autoStart: isOpen,
+    isReady: isOpen
+  });
   
   // New Client Form State
   const [newClient, setNewClient] = useState({
@@ -110,22 +115,32 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col h-[600px] max-h-[90vh]">
+      <div data-tour="clients-modal" className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col h-[600px] max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
             <Users className="text-primary-600" size={20} />
             <h2 className="text-lg font-bold text-slate-800">Gestionar Clientes</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              data-tour="clients-tour-button"
+              onClick={() => startClientsTour()}
+              className="text-sm text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg font-medium transition-all border border-slate-200 bg-white"
+            >
+              Ver tour
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Toolbar */}
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
+            <div className="relative flex-1" data-tour="clients-search">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               <input 
                 type="text" 
@@ -136,6 +151,8 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
               />
             </div>
             <button 
+              type="button"
+              data-tour="clients-new-button"
               onClick={() => {
                 if (showForm) resetForm();
                 else setShowForm(true);
@@ -149,8 +166,8 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
 
           {/* Add/Edit Form */}
           {showForm && (
-            <form onSubmit={handleSubmit} className="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 overflow-y-auto">
-              <div className="col-span-1">
+            <form data-tour="clients-form" onSubmit={handleSubmit} className="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 overflow-y-auto">
+              <div className="col-span-1" data-tour="clients-form-name">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -177,7 +194,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                   />
                 </div>
               </div>
-              <div className="col-span-1">
+              <div className="col-span-1" data-tour="clients-form-contact">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -203,7 +220,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                   />
                 </div>
               </div>
-              <div className="col-span-1">
+              <div className="col-span-1" data-tour="clients-form-details">
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo inmueble</label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
@@ -231,6 +248,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-end mt-2 gap-2">
                 <button 
+                  data-tour="clients-form-submit"
                   type="submit" 
                   className="w-full md:w-auto bg-primary-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
                 >
@@ -241,7 +259,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
           )}
 
           {/* List */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4" data-tour="clients-list">
             {loading ? (
               <div className="text-center py-8 text-slate-500">Cargando clientes...</div>
             ) : filteredClients.length === 0 ? (

@@ -61,3 +61,46 @@
   }
 }
 
+.driver-popover {
+  border-radius: 1rem;
+  border: 1px solid rgb(226 232 240);
+  box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+}
+
+.driver-popover-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgb(15 23 42);
+}
+
+.driver-popover-description {
+  color: rgb(71 85 105);
+  line-height: 1.5;
+}
+
+.driver-popover-progress-text {
+  color: rgb(100 116 139);
+}
+
+.driver-popover-footer button {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(203 213 225);
+  background: white;
+  color: rgb(15 23 42);
+  text-shadow: none;
+  box-shadow: none;
+}
+
+.driver-popover-footer button.driver-popover-next-btn {
+  background: rgb(37 99 235);
+  border-color: rgb(37 99 235);
+  color: white;
+}
+
+.driver-popover-footer button:hover {
+  background: rgb(241 245 249);
+}
+
+.driver-popover-footer button.driver-popover-next-btn:hover {
+  background: rgb(29 78 216);
+}

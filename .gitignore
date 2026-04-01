@@ -67,4 +67,5 @@ htmlcov/
 docker-compose.override.yml
 
 scripts/deploy-images.sh
+scripts/deploy-*
 modelo-presupuesto/

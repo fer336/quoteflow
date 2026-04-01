@@ -128,6 +128,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
       <div className="flex min-h-full items-stretch justify-center p-0 md:items-center md:p-6">
         <form 
           onSubmit={handleSubmit}
+          data-tour="budget-modal"
           className="bg-white w-full min-h-screen shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col md:min-h-0 md:max-w-3xl md:my-auto md:max-h-[calc(100dvh-3rem)] md:rounded-2xl"
         >
         {/* Header - Fixed */}
@@ -147,7 +148,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
         <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {/* Top Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="md:col-span-1 relative">
+            <div className="md:col-span-1 relative" data-tour="budget-form-client">
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Cliente</label>
               <div className="relative">
                 <input 
@@ -235,7 +236,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
           </div>
 
           {/* Dynamic Table */}
-          <div className="mb-4">
+          <div className="mb-4" data-tour="budget-form-items">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
                 Detalle de Servicios / Productos
@@ -255,9 +256,9 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 block md:table-row-group">
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <tr key={item.id} className="group block md:table-row p-4 md:p-0 border-b md:border-b-0 border-slate-100">
-                      <td className="md:p-2 block md:table-cell mb-2 md:mb-0">
+                      <td className="md:p-2 block md:table-cell mb-2 md:mb-0" data-tour={index === 0 ? 'budget-form-item-description' : undefined}>
                         <label className="md:hidden text-xs font-bold text-slate-400 uppercase mb-1 block">Descripción</label>
                         <input 
                           type="text" 
@@ -296,6 +297,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
             </div>
             
             <button 
+              data-tour="budget-form-add-item"
               type="button" 
               onClick={addItem}
               className="mt-3 flex items-center gap-2 text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors py-2 px-3 rounded-lg border border-dashed border-primary-200 hover:border-primary-400 w-full justify-center md:w-auto"
@@ -361,6 +363,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
               Cancelar
             </button>
             <button 
+              data-tour="budget-form-submit"
               type="submit"
               className="flex-[2] py-3 px-4 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all flex items-center justify-center gap-2"
             >

@@ -19,6 +19,7 @@ import ClientsManager from './components/ClientsManager';
 import SettingsModal from './components/SettingsModal';
 import LoginPage from './components/LoginPage';
 import { budgetService } from './services/api';
+import { useProductTour } from './tours/productTour';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -32,6 +33,10 @@ export default function App() {
   
   // State for Editing
   const [editingBudget, setEditingBudget] = useState(null);
+  const { startTour: startBudgetsTour } = useProductTour('presupuestos', {
+    autoStart: Boolean(user),
+    isReady: Boolean(user)
+  });
 
   // Check login on mount
   useEffect(() => {
@@ -265,8 +270,18 @@ export default function App() {
 
           <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block"></div>
 
+          <button
+            type="button"
+            data-tour="budgets-tour-button"
+            onClick={() => startBudgetsTour()}
+            className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg font-medium transition-all border border-slate-200 bg-white text-sm md:text-base"
+          >
+            Ver tour
+          </button>
+
           <button 
             onClick={openNewBudgetModal}
+            data-tour="budgets-new-button"
             className="bg-primary-600 hover:bg-primary-700 text-white px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-sm md:text-base"
           >
             <Plus size={18} />
@@ -278,20 +293,9 @@ export default function App() {
 
       {/* Main Content */}
       <main className="pt-20 md:pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto">
-        <header className="mb-6 md:mb-8 flex justify-between items-end">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Panel QuoteFlow</h1>
-            <p className="text-sm md:text-base text-slate-500">Gestioná presupuestos y propuestas comerciales desde un solo lugar.</p>
-          </div>
-          {/* Mobile User Info */}
-          <div className="md:hidden flex items-center gap-2">
-            {user.picture && <img src={user.picture} alt="Profile" className="w-8 h-8 rounded-full border border-slate-200" />}
-          </div>
-        </header>
-
         {/* Filters & Search */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96">
+          <div className="relative w-full md:w-96" data-tour="budgets-search">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
@@ -301,11 +305,12 @@ export default function App() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-slate-500" data-tour="budgets-total">
             <span>Total: <strong>{filteredBudgets.length}</strong></span>
           </div>
         </div>
 
+        <div data-tour="budgets-list">
         {/* Mobile Cards View */}
         <div className="md:hidden space-y-4">
           {loading ? (
@@ -439,6 +444,7 @@ export default function App() {
               </table>
             </div>
           )}
+        </div>
         </div>
       </main>
 
