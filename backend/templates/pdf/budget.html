@@ -17,24 +17,7 @@
               <span>SIN LOGO</span>
             </div>
             {% endif %}
-          </div>
-        </section>
-
-        <section class="meta-box">
-          <div class="meta-content">
-            <div class="meta-title-row">
-              <strong class="meta-title">Presupuesto</strong>
-            </div>
-            <div class="meta-text-lines" aria-label="Datos del presupuesto">
-              <div class="meta-text-line">
-                <span class="meta-text-label">{{ budget.number_label }}:</span>
-                <span class="meta-text-value">{{ budget.number }}</span>
-              </div>
-              <div class="meta-text-line">
-                <span class="meta-text-label">Fecha:</span>
-                <span class="meta-text-value">{{ budget.date }}</span>
-              </div>
-            </div>
+            <div class="brand-name">{{ company.name|default('') }}</div>
           </div>
         </section>
       </header>
@@ -60,6 +43,12 @@
               <th>Validez</th>
               <td>{{ budget.validity }}</td>
             </tr>
+            <tr>
+              <th>Presupuesto</th>
+              <td>{{ budget.number }}</td>
+              <th>Fecha</th>
+              <td>{{ budget.date }}</td>
+            </tr>
           </tbody>
         </table>
       </section>
@@ -68,7 +57,7 @@
         <table class="items-table">
           <thead>
             <tr>
-              <th>Descripción</th>
+              <th>DESCRIPCION</th>
             </tr>
           </thead>
           <tbody>
@@ -81,6 +70,7 @@
             {% endfor %}
           </tbody>
         </table>
+        <div class="items-spacer" aria-hidden="true"></div>
       </section>
 
       <section class="summary-strip summary-strip--total-only">
