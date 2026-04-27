@@ -129,6 +129,17 @@ export const companyService = {
     });
     return response.data;
   },
+
+  // Company settings (branding)
+  getSettings: async () => {
+    const response = await api.get('/company/settings');
+    return response.data;
+  },
+
+  updateSettings: async (settings) => {
+    const response = await api.patch('/company/settings', settings);
+    return response.data;
+  },
 };
 
 // Auth endpoints
