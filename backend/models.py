@@ -27,21 +27,15 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     google_id = Column(String, unique=True, index=True, nullable=True)
-    hashed_password = Column(String, nullable=True)  # Para login con contraseña
+    hashed_password = Column(String, nullable=True)
     name = Column(String)
     picture = Column(String, nullable=True)
-    logo_url = Column(String, nullable=True)  # Logo personalizado de la empresa
-    is_active = Column(Boolean, default=True)  # Usuario habilitado/deshabilitado
+    logo_url = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # === Branding / Empresa ===
-    company_name = Column(String, nullable=True)
-    business_name = Column(String, nullable=True)
-    tax_id = Column(String, nullable=True)
-    address = Column(String, nullable=True)
-    phone = Column(String, nullable=True)
-    email_contact = Column(String, nullable=True)
-    payment_terms = Column(String, nullable=True)
+    # NOTA: Las columnas de branding se esperan agregar más tarde
+    # company_name, business_name, tax_id, address, phone, email_contact, payment_terms
 
     # Relationships
     clients = relationship("Client", back_populates="user")
