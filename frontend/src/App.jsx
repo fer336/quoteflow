@@ -222,12 +222,20 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20 md:pb-0">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-6 z-10">
+      <nav className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 md:px-6 z-10" style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)' }}>
         <div className="flex items-center gap-2">
-          <div className="bg-primary-600 p-2 rounded-lg">
-            <Calculator className="text-white w-5 h-5" />
+          {/* Octopus Logo */}
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--color-brand-purple), var(--color-brand-lilac))' }}>
+            <svg viewBox="0 0 100 100" className="w-5 h-5 text-white">
+              <g stroke="currentColor" strokeWidth="6" strokeLinecap="round" fill="none">
+                <path d="M30 55c-3-10 3-18 8-22M70 55c3-10-3-18-8-22"/>
+                <ellipse cx="50" cy="65" rx="20" ry="12" fill="currentColor" opacity="0.3"/>
+                <circle cx="42" cy="60" r="2.5" fill="currentColor"/>
+                <circle cx="58" cy="60" r="2.5" fill="currentColor"/>
+              </g>
+            </svg>
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800 hidden md:block">QuoteFlow</span>
+          <span className="font-bold text-xl tracking-tight hidden md:block" style={{ color: 'var(--color-brand-black)' }}>OctopusFlow</span>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3">

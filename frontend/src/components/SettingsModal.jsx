@@ -13,7 +13,7 @@ import {
 import { companyService } from '../services/api';
 
 const BRANDING_FIELDS = [
-  { key: 'name', label: 'Nombre / Título', placeholder: 'Ej: QuoteFlow de Juan Pérez', hint: 'Aparece en el encabezado del PDF' },
+  { key: 'name', label: 'Nombre / Título', placeholder: 'Ej: OctopusFlow de Juan Pérez', hint: 'Aparece en el encabezado del PDF' },
   { key: 'company_name', label: 'Nombre de Empresa', placeholder: 'Ej: Constructora López SRL', hint: 'Nombre comercial' },
   { key: 'business_name', label: 'Razón Social', placeholder: 'Ej: López & Asociados SRL', hint: 'Razón social legal' },
   { key: 'tax_id', label: 'CUIT / RUT / NIF', placeholder: 'Ej: 30-12345678-9', hint: 'Identificación fiscal' },

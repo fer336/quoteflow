@@ -93,7 +93,7 @@ export default function LoginPage({ onSuccess, onError }) {
         </div>
 
         <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-black)' }}>
-          QuoteFlow
+          OctopusFlow
         </h1>
         <p className="mb-6" style={{ color: 'var(--color-text-muted)' }}>
           Gestiona presupuestos y propuestas comerciales
@@ -193,7 +193,7 @@ export default function LoginPage({ onSuccess, onError }) {
         </div>
 
         <p className="mt-8 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          QuoteFlow &copy; {new Date().getFullYear()}
+          OctopusFlow &copy; {new Date().getFullYear()} OctopusTrack
         </p>
       </div>
     </div>
