@@ -56,10 +56,13 @@ def ensure_legacy_schema_compatibility():
     client_columns = {column["name"] for column in inspector.get_columns("clients")}
 
     if "tipo_inmueble" not in client_columns:
-        with engine.begin() as connection:
-            connection.execute(
-                text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
-            )
+        try:
+            with engine.begin() as connection:
+                connection.execute(
+                    text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
+                )
+        except Exception as e:
+            print(f"Warning: No se pudo agregar columna tipo_inmueble: {e}")
 
     # Migración: agregar columnas de branding a users si no existen
     if "users" in table_names:
@@ -73,12 +76,17 @@ def ensure_legacy_schema_compatibility():
             "email_contact",
             "payment_terms",
         }
-        with engine.begin() as connection:
-            for col in new_branding_columns:
-                if col not in user_columns:
-                    connection.execute(
-                        text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR")
-                    )
+        try:
+            with engine.begin() as connection:
+                for col in new_branding_columns:
+                    if col not in user_columns:
+                        connection.execute(
+                            text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR")
+                        )
+        except Exception as e:
+            # Si falla por permisos, continuamos sin las columnas nuevas
+            # El usuario quizás no tenga permisos para ALTER TABLE
+            print(f"Warning: No se pudieron agregar columnas de branding: {e}")
 
 
 # Dependency
