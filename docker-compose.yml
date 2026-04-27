@@ -1,10 +1,10 @@
 version: "3.8"
 
 # ==============================================================================
-# QuoteFlow - Docker Compose
+# QuoteFlow - Docker Compose (Producción)
 # ==============================================================================
-# Este archivo es para deploy en servidores con Portainer + Swarm + Traefik
-# Requiere redes y secrets pre-configurados en el manager.
+# Usar con Portainer + Swarm + Traefik
+# Requiere: secreto budgetpro_backend_env_v2 pre-configurado en el manager
 
 services:
   backend:
@@ -13,7 +13,7 @@ services:
       - network_public
       - budgetpro-internal
     secrets:
-      - source: quoteflow_backend_env
+      - source: budgetpro_backend_env_v2
         target: /run/secrets/backend.env
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
@@ -80,5 +80,5 @@ volumes:
     driver: local
 
 secrets:
-  quoteflow_backend_env:
+  budgetpro_backend_env_v2:
     external: true

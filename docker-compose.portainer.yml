@@ -1,27 +1,25 @@
 version: "3.8"
 
 # ==============================================================================
-# QuoteFlow - Stack File para Portainer
+# QuoteFlow - Stack File para Portainer (Testing)
 # ==============================================================================
-# Versión de testing que usa imagenes con tag "testing"
-# Para producción, cambiar "testing" por "latest" o "vX.Y.Z"
+# Versión de TESTING que usa imagenes con tag "testing"
+# Para producción: cambiar "testing" → "latest" o "vX.Y.Z"
+# Requiere: secreto budgetpro_backend_env_v2 pre-configurado en el manager
 
 services:
   backend:
     image: ghcr.io/fer336/quoteflow/backend:testing
     networks:
       - network_public
+      - budgetpro-internal
+    secrets:
+      - source: budgetpro_backend_env_v2
+        target: /run/secrets/backend.env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY=${SECRET_KEY}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - CORS_ORIGINS=${CORS_ORIGINS:-https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio.qeva.xyz}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_BUCKET=${MINIO_BUCKET:-budgetpro-logos}
-      - MINIO_USE_SSL=${MINIO_USE_SSL:-true}
+      - DATABASE_URL_FILE=/run/secrets/backend.env
+      - GOOGLE_CLIENT_ID_FILE=/run/secrets/backend.env
+      - CORS_ORIGINS=https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop
     volumes:
       - budgetpro_static:/app/static
     deploy:
@@ -49,6 +47,7 @@ services:
     image: ghcr.io/fer336/quoteflow/frontend:testing
     networks:
       - network_public
+      - budgetpro-internal
     depends_on:
       - backend
     deploy:
@@ -73,7 +72,14 @@ networks:
   network_public:
     external: true
     name: network_public
+  budgetpro-internal:
+    driver: overlay
+    internal: true
 
 volumes:
   budgetpro_static:
     driver: local
+
+secrets:
+  budgetpro_backend_env_v2:
+    external: true
