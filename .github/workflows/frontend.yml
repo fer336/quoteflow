@@ -81,3 +81,12 @@ jobs:
         run: |
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+      - name: Notify Portainer
+        if: vars.PORTAINER_WEBHOOK_URL
+        run: |
+          echo "Notifying Portainer..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
