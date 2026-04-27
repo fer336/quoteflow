@@ -35,13 +35,14 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # === Branding / Empresa ===
-    company_name = Column(String, nullable=True)      # Nombre comercial (para PDFs)
-    business_name = Column(String, nullable=True)      # Razón social
-    tax_id = Column(String, nullable=True)        # CUIT/RUT/NIF
-    address = Column(String, nullable=True)       # Dirección de la empresa
-    phone = Column(String, nullable=True)        # Teléfono de contacto
-    email_contact = Column(String, nullable=True)  # Email de contacto (diferente al login)
-    payment_terms = Column(String, nullable=True)  # Términos de pago (para PDF)
+    # NOTA: Estas columnas se agregan manualmente a la DB
+    # ALTER TABLE users ADD COLUMN company_name VARCHAR;
+    # ALTER TABLE users ADD COLUMN business_name VARCHAR;
+    # ALTER TABLE users ADD COLUMN tax_id VARCHAR;
+    # ALTER TABLE users ADD COLUMN address VARCHAR;
+    # ALTER TABLE users ADD COLUMN phone VARCHAR;
+    # ALTER TABLE users ADD COLUMN email_contact VARCHAR;
+    # ALTER TABLE users ADD COLUMN payment_terms VARCHAR;
 
     # Relationships
     clients = relationship("Client", back_populates="user")
