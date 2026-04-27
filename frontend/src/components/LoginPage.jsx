@@ -75,24 +75,15 @@ export default function LoginPage({ onSuccess, onError }) {
       <div className="w-full max-w-md p-8 rounded-2xl shadow-xl text-center animate-in fade-in zoom-in duration-300" style={{ background: 'var(--color-bg-secondary)' }}>
         
         {/* Logo octopus */}
-        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--color-brand-purple), var(--color-brand-lilac))' }}>
-          {/* Tentáculo SVG */}
-          <svg viewBox="0 0 100 100" className="w-12 h-12 text-white">
-            <path d="M50 15c-5 0-10 5-10 10 0 3 2 6 5 8-3 2-5 5-5 8 0 5 5 10 10 10 3 0 6-2 8-5 2 3 5 5 8 5 5 0 10-5 10-10 0-3-2-6-5-8 3-2 5-5 5-8 0-5-5-10-10-10-3 0-6 2-8 5-2-3-5-5-8-5z" fill="currentColor" opacity="0.3"/>
-            <g stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none">
-              <path d="M30 50c-5-15 5-25 10-30M35 55c0-20 10-30 15-35"/>
-              <path d="M70 50c5-15-5-25-10-30M65 55c0-20-10-30-15-35"/>
-              <path d="M40 65c-10-10-10-25-5-35"/>
-              <path d="M60 65c10-10 10-25 5-35"/>
-              <ellipse cx="50" cy="60" rx="25" ry="15" fill="currentColor" opacity="0.2"/>
-              <circle cx="42" cy="55" r="3" fill="currentColor"/>
-              <circle cx="58" cy="55" r="3" fill="currentColor"/>
-              <path d="M45 68c3 5 7 5 10 0" stroke="currentColor" fill="none"/>
-            </g>
-          </svg>
+        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan))' }}>
+          <img 
+            src="/logo-tenculo-final.png" 
+            alt="OctopusFlow Logo" 
+            className="w-full h-full object-contain p-2"
+          />
         </div>
 
-        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-black)' }}>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-dark)' }}>
           OctopusFlow
         </h1>
         <p className="mb-6" style={{ color: 'var(--color-text-muted)' }}>
@@ -149,9 +140,9 @@ export default function LoginPage({ onSuccess, onError }) {
             disabled={loading}
             className="w-full font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2"
             style={{ 
-              background: 'var(--color-brand-purple)',
+              background: 'var(--color-brand-blue)',
               color: 'white',
-              boxShadow: '0 4px 14px rgba(92, 58, 140, 0.3)'
+              boxShadow: '0 4px 14px rgba(2, 83, 115, 0.3)'
             }}
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'Ingresar'}

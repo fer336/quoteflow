@@ -8,10 +8,10 @@ export default {
     extend: {
       colors: {
         brand: {
-          black: '#121325',
-          white: '#f0f0f2',
-          lilac: '#9d84bf',
-          purple: '#5c3a8c',
+          dark: '#081b26',
+          blue: '#025373',
+          cyan: '#04b2d9',
+          light: '#049dd9',
         }
       }
     },

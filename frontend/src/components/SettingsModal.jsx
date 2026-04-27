@@ -319,7 +319,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               disabled={!selectedFile || logoLoading}
               className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
               style={{
-                background: !selectedFile || logoLoading ? 'var(--color-text-muted)' : 'var(--color-brand-purple)'
+                background: !selectedFile || logoLoading ? 'var(--color-text-muted)' : 'var(--color-brand-blue)'
               }}
             >
               {logoLoading ? (
@@ -337,7 +337,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               disabled={companySaving}
               className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
               style={{
-                background: companySaving ? 'var(--color-text-muted)' : 'var(--color-brand-purple)'
+                background: companySaving ? 'var(--color-text-muted)' : 'var(--color-brand-blue)'
               }}
             >
               {companySaving ? (
