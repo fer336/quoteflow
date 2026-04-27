@@ -226,7 +226,7 @@ export default function App() {
         <div className="flex items-center gap-2">
           {/* Octopus Logo */}
           <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan))' }}>
-            <img src="/favicon.svg" alt="Logo" className="w-full h-full object-contain p-1" />
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
           </div>
           <span className="font-bold text-xl tracking-tight hidden md:block" style={{ color: 'var(--color-brand-dark)' }}>OctopusFlow</span>
         </div>

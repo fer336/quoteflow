@@ -76,17 +76,11 @@ export default function LoginPage({ onSuccess, onError }) {
         
         {/* Logo SVG inline */}
         <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan))' }}>
-          <svg viewBox="0 0 100 100" className="w-full h-full p-3">
-            <g stroke="white" strokeWidth="4" strokeLinecap="round" fill="none">
-              <path d="M30 50c-5-15 5-25 10-30"/>
-              <path d="M70 50c5-15-5-25-10-30"/>
-              <path d="M40 60c-10-10-10-25-5-35"/>
-              <path d="M60 60c10-10 10-25 5-35"/>
-              <ellipse cx="50" cy="55" rx="25" ry="15" fill="white" opacity="0.2"/>
-              <circle cx="42" cy="50" r="3" fill="white"/>
-              <circle cx="58" cy="50" r="3" fill="white"/>
-            </g>
-          </svg>
+          <img 
+            src="/logo.png" 
+            alt="OctopusFlow Logo" 
+            className="w-full h-full object-contain p-2"
+          />
         </div>
 
         <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-dark)' }}>
