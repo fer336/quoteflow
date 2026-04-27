@@ -344,7 +344,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
                   checked={isManualMode}
                   onChange={() => setIsManualMode(!isManualMode)}
                 />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <div className="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all" style={{ background: 'var(--color-brand-purple)' }}></div>
                 <span className="ml-3 text-sm font-medium text-slate-600">Ingresar total manualmente</span>
               </label>
               {isManualMode && (
@@ -389,7 +389,7 @@ export default function BudgetModal({ isOpen, onClose, onSubmit, initialData }) 
             <button 
               data-tour="budget-form-submit"
               type="submit"
-              className="flex-[2] py-3 px-4 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all flex items-center justify-center gap-2"
+              className="flex-[2] py-3 px-4 rounded-xl font-bold hover:opacity-90 shadow-lg transition-all flex items-center justify-center gap-2" style={{ background: 'var(--color-brand-purple)', color: 'white' }}
             >
               <CheckCircle2 size={18} />
               {initialData ? 'Actualizar' : 'Guardar'}

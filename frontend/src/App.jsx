@@ -290,7 +290,8 @@ export default function App() {
           <button 
             onClick={openNewBudgetModal}
             data-tour="budgets-new-button"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-sm md:text-base"
+            className="px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-sm md:text-base"
+            style={{ background: 'var(--color-brand-purple)', color: 'white' }}
           >
             <Plus size={18} />
             <span className="hidden md:inline">Nuevo Presupuesto</span>

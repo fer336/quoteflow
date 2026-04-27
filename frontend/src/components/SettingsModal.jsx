@@ -317,11 +317,10 @@ export default function SettingsModal({ isOpen, onClose }) {
             <button
               onClick={handleUpload}
               disabled={!selectedFile || logoLoading}
-              className={`flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2 ${
-                !selectedFile || logoLoading
-                  ? 'bg-slate-300 cursor-not-allowed'
-                  : 'bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-100'
-              }`}
+              className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
+              style={{
+                background: !selectedFile || logoLoading ? 'var(--color-text-muted)' : 'var(--color-brand-purple)'
+              }}
             >
               {logoLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -336,11 +335,10 @@ export default function SettingsModal({ isOpen, onClose }) {
             <button
               onClick={handleSaveCompany}
               disabled={companySaving}
-              className={`flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2 ${
-                companySaving
-                  ? 'bg-slate-300 cursor-not-allowed'
-                  : 'bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-100'
-              }`}
+              className="flex-[2] py-2.5 rounded-xl text-white font-bold transition-all text-sm flex items-center justify-center gap-2"
+              style={{
+                background: companySaving ? 'var(--color-text-muted)' : 'var(--color-brand-purple)'
+              }}
             >
               {companySaving ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
