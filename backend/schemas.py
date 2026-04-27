@@ -20,6 +20,35 @@ class UserResponse(UserBase):
     is_active: bool
     created_at: datetime
 
+    # === Branding ===
+    company_name: Optional[str] = None
+    business_name: Optional[str] = None
+    tax_id: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email_contact: Optional[str] = None
+    payment_terms: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# --- Company Settings ---
+class CompanySettingsBase(BaseModel):
+    """Campos editables de branding para la empresa del usuario."""
+    name: Optional[str] = None
+    company_name: Optional[str] = None
+    business_name: Optional[str] = None
+    tax_id: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email_contact: Optional[str] = None
+    payment_terms: Optional[str] = None
+
+
+class CompanySettingsResponse(CompanySettingsBase):
+    logo_url: Optional[str] = None
+
     class Config:
         from_attributes = True
 

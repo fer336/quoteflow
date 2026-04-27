@@ -31,12 +31,17 @@ os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # CORS configuration
+# Soporta múltiples orígenes separados por coma (desde env var) o fallback al nuevo dominio
+_cors_raw = os.getenv(
+    "CORS_ORIGINS",
+    "https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop",
+)
+_cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+_cors_origins.append("http://localhost:5173")  # Vite dev server
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://sistema.qeva.xyz",
-        "http://sistema.qeva.xyz",
-    ],
+    allow_origins=_cors_origins,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],

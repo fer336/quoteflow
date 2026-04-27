@@ -34,6 +34,15 @@ class User(Base):
     is_active = Column(Boolean, default=True)  # Usuario habilitado/deshabilitado
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # === Branding / Empresa ===
+    company_name = Column(String, nullable=True)      # Nombre comercial (para PDFs)
+    business_name = Column(String, nullable=True)      # Razón social
+    tax_id = Column(String, nullable=True)        # CUIT/RUT/NIF
+    address = Column(String, nullable=True)       # Dirección de la empresa
+    phone = Column(String, nullable=True)        # Teléfono de contacto
+    email_contact = Column(String, nullable=True)  # Email de contacto (diferente al login)
+    payment_terms = Column(String, nullable=True)  # Términos de pago (para PDF)
+
     # Relationships
     clients = relationship("Client", back_populates="user")
     budgets = relationship("Budget", back_populates="user")

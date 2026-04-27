@@ -61,6 +61,25 @@ def ensure_legacy_schema_compatibility():
                 text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
             )
 
+    # Migración: agregar columnas de branding a users si no existen
+    if "users" in table_names:
+        user_columns = {column["name"] for column in inspector.get_columns("users")}
+        new_branding_columns = {
+            "company_name",
+            "business_name",
+            "tax_id",
+            "address",
+            "phone",
+            "email_contact",
+            "payment_terms",
+        }
+        with engine.begin() as connection:
+            for col in new_branding_columns:
+                if col not in user_columns:
+                    connection.execute(
+                        text(f"ALTER TABLE users ADD COLUMN {col} VARCHAR")
+                    )
+
 
 # Dependency
 def get_db():

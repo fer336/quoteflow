@@ -4,10 +4,13 @@ from sqlalchemy.orm import Session
 from database import get_db
 from auth import get_current_user
 from models import User
+from schemas import CompanySettingsBase, CompanySettingsResponse
 from services import storage
 
 router = APIRouter()
 
+
+# --- Logo endpoints ---
 
 @router.post("/logo")
 async def upload_logo(
@@ -21,13 +24,6 @@ async def upload_logo(
         filename = f"logo_{current_user.id}.{ext}"  # Overwrite user's logo file
 
         file_data = await file.read()
-
-        # Upload to MinIO
-        # We store just the filename relative to bucket basically, or full URL
-        # For simplicity, let's store the filename in DB or just reconstruct it if predictable.
-        # But storing full URL or filename is safer.
-
-        # Let's store just the filename in DB to easily fetch it back from MinIO
 
         storage.upload_file(file_data, filename, file.content_type)
 
@@ -53,3 +49,58 @@ async def get_logo(current_user: User = Depends(get_current_user)):
             )
 
     raise HTTPException(status_code=404, detail="No logo found")
+
+
+# --- Company settings endpoints ---
+
+@router.get("/settings", response_model=CompanySettingsResponse)
+async def get_company_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get current user's company/branding settings"""
+    return CompanySettingsResponse(
+        name=current_user.name,
+        company_name=current_user.company_name,
+        business_name=current_user.business_name,
+        tax_id=current_user.tax_id,
+        address=current_user.address,
+        phone=current_user.phone,
+        email_contact=current_user.email_contact,
+        payment_terms=current_user.payment_terms,
+        logo_url=current_user.logo_url,
+    )
+
+
+@router.patch("/settings", response_model=CompanySettingsResponse)
+async def update_company_settings(
+    settings: CompanySettingsBase,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update current user's company/branding settings"""
+    update_data = settings.model_dump(exclude_unset=True)
+
+    if not update_data:
+        raise HTTPException(
+            status_code=400,
+            detail="No se proporcionaron campos para actualizar"
+        )
+
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+
+    return CompanySettingsResponse(
+        name=current_user.name,
+        company_name=current_user.company_name,
+        business_name=current_user.business_name,
+        tax_id=current_user.tax_id,
+        address=current_user.address,
+        phone=current_user.phone,
+        email_contact=current_user.email_contact,
+        payment_terms=current_user.payment_terms,
+        logo_url=current_user.logo_url,
+    )
