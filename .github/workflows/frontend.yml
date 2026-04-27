@@ -42,8 +42,8 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          VITE_API_URL: ${{ vars.FRONTEND_VITE_API_URL }}
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.FRONTEND_GOOGLE_CLIENT_ID }}
+          VITE_API_URL: ${{ vars.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.FRONTEND_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
