@@ -76,11 +76,14 @@ export default function LoginPage({ onSuccess, onError }) {
         
         {/* Logo octopus */}
         <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan))' }}>
-          <img 
-            src="/logo-tenculo-final.png" 
-            alt="OctopusFlow Logo" 
-            className="w-full h-full object-contain p-2"
-          />
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <g fill="white">
+              <path d="M30 55c-3-10 3-18 8-22M70 55c3-10-3-18-8-22" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
+              <ellipse cx="50" cy="62" rx="22" ry="13" opacity="0.4"/>
+              <circle cx="42" cy="57" r="3"/>
+              <circle cx="58" cy="57" r="3"/>
+            </g>
+          </svg>
         </div>
 
         <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-dark)' }}>
