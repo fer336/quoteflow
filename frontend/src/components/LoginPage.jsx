@@ -44,39 +44,6 @@ export default function LoginPage({ onSuccess, onError }) {
     }
   };
 
-  const handleConfirmGoogleLogin = async () => {
-    if (!pendingGoogleAuth?.credential) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      // Canjeamos el token de Google por nuestro JWT interno
-      const data = await authService.googleLogin(pendingGoogleAuth.credential);
-      setPendingGoogleAuth(null);
-      onSuccess(data.access_token);
-    } catch (err) {
-      console.error('Google Login Error:', err);
-      // Check if it's a 403 (User not registered)
-      if (err.response && err.response.status === 403) {
-        setError('Acceso denegado. Tu usuario no está registrado en el sistema.');
-      } else if (err.response && err.response.status === 400 && err.response.data.detail === "Usuario inactivo") {
-        setError('Tu cuenta está inactiva. Contacta al administrador.');
-      } else {
-        setError('Error al iniciar sesión con Google.');
-      }
-      if (onError) onError();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancelGoogleLogin = () => {
-    setPendingGoogleAuth(null);
-    setError('Inicio de sesión con Google cancelado. No se guardó ninguna sesión.');
-  };
-
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
