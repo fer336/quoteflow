@@ -9,7 +9,6 @@ export default function LoginPage({ onSuccess, onError }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(null);
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
@@ -28,14 +27,19 @@ export default function LoginPage({ onSuccess, onError }) {
         return;
       }
 
-      setPendingGoogleAuth({
-        credential: credentialResponse.credential,
-        email: googleUser.email,
-        name: googleUser.name,
-      });
+      // Login directo sin confirmación
+      setLoading(true);
+      const data = await authService.googleLogin(credentialResponse.credential);
+      onSuccess(data.access_token);
     } catch (err) {
-      console.error('Google Login Decode Error:', err);
-      setError('No pudimos validar la cuenta elegida en Google. Inténtalo de nuevo.');
+      console.error('Google Login Error:', err);
+      if (err.response && err.response.status === 403) {
+        setError('Acceso denegado. Tu usuario no está registrado en el sistema.');
+      } else if (err.response && err.response.status === 400 && err.response.data.detail === "Usuario inactivo") {
+        setError('Tu cuenta está inactiva. Contacta al administrador.');
+      } else {
+        setError('Error al iniciar sesión con Google.');
+      }
       if (onError) onError();
     }
   };
@@ -183,34 +187,6 @@ export default function LoginPage({ onSuccess, onError }) {
                 />
             )}
         </div>
-
-        {pendingGoogleAuth && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
-            <p className="text-sm font-semibold text-amber-900 mb-1">Confirmá la cuenta de Google antes de entrar</p>
-            <p className="text-sm text-amber-800 mb-3">
-              Vas a ingresar con <span className="font-semibold">{pendingGoogleAuth.email}</span>
-              {pendingGoogleAuth.name ? ` (${pendingGoogleAuth.name})` : ''}. Si no es tu cuenta, cancelá ahora y elegí otra.
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleConfirmGoogleLogin}
-                disabled={loading}
-                className="flex-1 bg-amber-600 text-white font-semibold py-2 rounded-lg hover:bg-amber-700 transition-all disabled:opacity-60"
-              >
-                Confirmar y continuar
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelGoogleLogin}
-                disabled={loading}
-                className="flex-1 border border-amber-300 text-amber-900 font-semibold py-2 rounded-lg hover:bg-amber-100 transition-all disabled:opacity-60"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
 
         <p className="mt-8 text-xs text-slate-400">
           QuoteFlow &copy; {new Date().getFullYear()}
