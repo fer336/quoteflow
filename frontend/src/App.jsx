@@ -196,12 +196,11 @@ export default function App() {
         await navigator.share({
           files: [file],
           title: `Presupuesto ${budgetCode}`,
-          text: `Hola ${clientName}, adjunto el presupuesto solicitado.`,
+          text: `Presupuesto ${budgetCode} para ${clientName}`,
         });
       } else {
-         // Fallback link sharing is tricky with secure auth. 
-         // We can't share a localhost/protected URL easily.
-         alert('Compartir directo solo disponible en móviles. Descarga el archivo para enviarlo por WhatsApp Web.');
+         // Fallback link sharing is tricky with secure auth.
+         alert('Compartí el archivo PDF por WhatsApp.');
       }
     } catch (error) {
       console.error('Error sharing:', error);

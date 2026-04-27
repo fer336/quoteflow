@@ -205,7 +205,8 @@ def _render_pdf_with_weasyprint(html_content):
         raise RuntimeError("WeasyPrint no está instalado en el entorno") from error
 
     pdf_bytes = HTML(string=html_content, base_url=str(TEMPLATE_DIR)).write_pdf(
-        stylesheets=[CSS(filename=str(STYLESHEET_PATH))]
+        stylesheets=[CSS(filename=str(STYLESHEET_PATH))],
+        presentational_hints=True,
     )
     buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
