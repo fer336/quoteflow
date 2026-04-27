@@ -1,5 +1,15 @@
+# ==============================================================================
+# QuoteFlow Frontend - Dockerfile
+# Multi-stage build: Node.js (build) → Nginx (serve)
+# ==============================================================================
+
 # Etapa 1: Construcción
 FROM node:18-alpine as build
+
+# Labels para GHCR
+LABEL org.opencontainers.image.source="https://github.com/fer336/quoteflow"
+LABEL org.opencontainers.image.description="QuoteFlow Frontend"
+LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app
 
