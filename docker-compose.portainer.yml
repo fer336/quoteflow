@@ -5,7 +5,7 @@ version: "3.8"
 # ==============================================================================
 # Versión de TESTING que usa imagenes con tag "testing"
 # Para producción: cambiar "testing" → "latest" o "vX.Y.Z"
-# Requiere: secreto budgetpro_backend_env_v2 pre-configurado en el manager
+# Requiere: secreto quoteflow_backend_env pre-configurado en Portainer
 
 services:
   backend:
@@ -14,7 +14,7 @@ services:
       - network_public
       - budgetpro-internal
     secrets:
-      - source: budgetpro_backend_env_v2
+      - source: quoteflow_backend_env
         target: /run/secrets/backend.env
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
@@ -81,5 +81,5 @@ volumes:
     driver: local
 
 secrets:
-  budgetpro_backend_env_v2:
+  quoteflow_backend_env:
     external: true
