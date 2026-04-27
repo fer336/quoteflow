@@ -34,8 +34,14 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # NOTA: Las columnas de branding se esperan agregar más tarde
-    # company_name, business_name, tax_id, address, phone, email_contact, payment_terms
+    # === Branding / Empresa ===
+    company_name = Column(String, nullable=True)
+    business_name = Column(String, nullable=True)
+    tax_id = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+    email_contact = Column(String, nullable=True)
+    payment_terms = Column(String, nullable=True)
 
     # Relationships
     clients = relationship("Client", back_populates="user")

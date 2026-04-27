@@ -64,21 +64,13 @@ def ensure_legacy_schema_compatibility():
         except Exception as e:
             print(f"Warning: No se pudo agregar columna tipo_inmueble: {e}")
 
-    # Verificar que las columnas de branding existan (after manual migration)
+    # Verificar que las columnas de branding existan (solo informational)
     if "users" in table_names:
         user_columns = {column["name"] for column in inspector.get_columns("users")}
-        new_branding_columns = {
-            "company_name",
-            "business_name",
-            "tax_id",
-            "address",
-            "phone",
-            "email_contact",
-            "payment_terms",
-        }
-        missing = new_branding_columns - user_columns
+        branding_cols = {"company_name", "business_name", "tax_id", "address", "phone", "email_contact", "payment_terms"}
+        missing = branding_cols - user_columns
         if missing:
-            print(f"Warning: Columnas de branding faltantes en DB: {missing}")
+            print(f"INFO: Columnas de branding faltantes en DB: {missing}. Agregar manualmente con usuario postgres.")
 
 
 # Dependency
