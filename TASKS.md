@@ -8,6 +8,19 @@
 ## 🟡 En progreso
 
 ## 🟢 Hecho
+- [x] Actualizar metadata (title + og-image) y reordenar assets en frontend/public/images ✅ 2026-04-28
+- [x] Igualar ancho de columnas Estado, Total y Acciones en tabla desktop ✅ 2026-04-28
+- [x] Reordenar columnas de tabla: ID, Fecha, Cliente, Estado, Total, Acciones ✅ 2026-04-28
+- [x] Cambiar botón "Nuevo" para mostrar solo "+" ✅ 2026-04-28
+- [x] Refactor layout a full-width y alta densidad en pantalla principal ✅ 2026-04-28
+- [x] Reducir aún más el título "Iniciar sesión" ✅ 2026-04-28
+- [x] Reducir más el tamaño del título "Iniciar sesión" ✅ 2026-04-28
+- [x] Implementar botón Google custom (G azul) manteniendo login funcional ✅ 2026-04-28
+- [x] Ajustar tamaño del título de login ✅ 2026-04-28
+- [x] Ajustar login: mismo diseño de referencia, cambiando solo paleta de colores ✅ 2026-04-28
+- [x] Replicar diseño de login de /Documentos/18-OctopusTrack ✅ 2026-04-28
+- [x] Corregir login: eliminar cualquier fondo residual visible ✅ 2026-04-28
+- [x] Revisar fondo del login para que sea transparente y se vea solo el tentáculo ✅ 2026-04-28
 - [x] Crear branch testing desde main ✅ 2026-04-27
 - [x] Crear .github/workflows/backend.yml ✅ 2026-04-27
 - [x] Crear .github/workflows/frontend.yml ✅ 2026-04-27

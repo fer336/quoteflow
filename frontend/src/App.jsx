@@ -57,6 +57,13 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    document.body.style.backgroundColor = user ? 'var(--color-bg-primary)' : 'transparent';
+    return () => {
+      document.body.style.backgroundColor = 'var(--color-bg-primary)';
+    };
+  }, [user]);
+
   const handleLoginSuccess = (token) => {
     localStorage.setItem('token', token);
     try {
@@ -220,15 +227,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 md:px-6 z-10" style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)' }}>
+      <nav className="fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-2 md:px-3 z-10" style={{ background: 'var(--color-bg-secondary)', borderBottom: '1px solid var(--color-border)' }}>
         <div className="flex items-center gap-2">
           {/* Octopus Logo */}
           <div className="w-9 h-9 rounded-lg flex items-center justify-center">
-            <img src="/favicon.svg" alt="Logo" className="w-full h-full" />
+            <img src="/images/favicon/favicon.svg" alt="Logo" className="w-full h-full" />
           </div>
-          <span className="font-bold text-xl tracking-tight hidden md:block" style={{ color: 'var(--color-brand-dark)' }}>OctopusFlow</span>
+          <span className="font-bold text-base tracking-tight hidden md:block" style={{ color: 'var(--color-brand-dark)' }}>OctopusFlow</span>
         </div>
         
         <div className="flex items-center gap-2 md:gap-3">
@@ -248,7 +255,7 @@ export default function App() {
 
           <button 
             onClick={() => setIsClientsManagerOpen(true)}
-            className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg font-medium transition-all flex items-center gap-2"
+            className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-2 py-1.5 rounded-lg font-medium transition-all flex items-center gap-2"
           >
             <Users size={18} />
             <span className="hidden md:inline">Clientes</span>
@@ -263,7 +270,7 @@ export default function App() {
           </button>
           <button 
             onClick={handleLogout}
-            className="hidden md:flex text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-lg font-medium transition-all items-center gap-2"
+            className="hidden md:flex text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-2 py-1.5 rounded-lg font-medium transition-all items-center gap-2"
           >
             <LogOut size={18} />
             <span>Salir</span>
@@ -275,7 +282,7 @@ export default function App() {
             type="button"
             data-tour="budgets-tour-button"
             onClick={() => startBudgetsTour()}
-            className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg font-medium transition-all border border-slate-200 bg-white text-sm md:text-base"
+            className="text-slate-600 hover:text-primary-600 hover:bg-primary-50 px-2 py-1.5 rounded-lg font-medium transition-all border border-slate-200 bg-white text-xs md:text-sm"
           >
             Ver tour
           </button>
@@ -283,44 +290,43 @@ export default function App() {
           <button 
             onClick={openNewBudgetModal}
             data-tour="budgets-new-button"
-            className="px-3 md:px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-sm md:text-base"
+            className="px-2 md:px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm text-xs md:text-sm"
             style={{ background: 'var(--color-brand-blue)', color: 'white' }}
+            title="Nuevo Presupuesto"
           >
             <Plus size={18} />
-            <span className="hidden md:inline">Nuevo Presupuesto</span>
-            <span className="md:hidden">Nuevo</span>
           </button>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="pt-20 md:pt-24 pb-12 px-4 md:px-8 max-w-6xl mx-auto">
+      <main className="pt-14 pb-4 px-2 md:px-3 w-full max-w-none">
         {/* Filters & Search */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full md:w-96" data-tour="budgets-search">
+        <div className="bg-white p-2 rounded-lg border border-slate-200 shadow-sm mb-3 flex flex-col md:flex-row gap-2 items-center justify-between">
+          <div className="relative w-full flex-1" data-tour="budgets-search">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
               placeholder="Buscar cliente o ID..." 
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+               className="w-full pl-10 pr-3 py-1.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2 text-sm text-slate-500" data-tour="budgets-total">
+          <div className="flex items-center gap-2 text-xs text-slate-500 w-full md:w-auto justify-end" data-tour="budgets-total">
             <span>Total: <strong>{filteredBudgets.length}</strong></span>
           </div>
         </div>
 
         <div data-tour="budgets-list">
         {/* Mobile Cards View */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-2">
           {loading ? (
              <div className="text-center py-8">
                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
              </div>
           ) : filteredBudgets.map((budget) => (
-            <div key={budget.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div key={budget.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <span className="font-mono text-xs font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{budget.budget_id}</span>
@@ -340,7 +346,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-2">
                 <button 
                   onClick={() => handleViewPDF(budget.id)}
                   className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-primary-50 text-primary-700 border border-primary-100 text-sm font-bold hover:bg-primary-100 transition-colors"
@@ -375,7 +381,7 @@ export default function App() {
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="hidden md:block bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden w-full">
           {loading ? (
             <div className="py-12 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -386,54 +392,54 @@ export default function App() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">ID</th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Cliente</th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Fecha</th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Estado</th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-right">Total</th>
-                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-center">Acciones</th>
+                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">ID</th>
+                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Fecha</th>
+                    <th className="px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Cliente</th>
+                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide">Estado</th>
+                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide text-right">Total</th>
+                    <th className="w-36 px-3 py-2 text-[11px] font-semibold uppercase text-slate-500 tracking-wide text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {filteredBudgets.map((budget) => (
                     <tr key={budget.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-6 py-4 font-mono text-sm text-primary-600 font-medium">{budget.budget_id}</td>
-                      <td className="px-6 py-4 font-medium text-slate-800">{budget.client}</td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-3 py-2 font-mono text-xs text-primary-600 font-medium">{budget.budget_id}</td>
+                      <td className="px-3 py-2 text-sm text-slate-500">
                         {new Date(budget.date).toLocaleDateString('es-ES')}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2 text-sm font-medium text-slate-800">{budget.client}</td>
+                      <td className="w-36 px-3 py-2">
                         <StatusBadge status={budget.status} />
                       </td>
-                      <td className="px-6 py-4 text-right font-bold text-slate-900">
+                      <td className="w-36 px-3 py-2 text-right text-sm font-bold text-slate-900">
                         ${budget.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="w-36 px-3 py-2 text-center">
                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => handleViewPDF(budget.id)}
-                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Ver Presupuesto"
                           >
                             <Eye size={16} />
                           </button>
                           <button 
                             onClick={() => handleSharePDF(budget.id, budget.budget_id, budget.client)}
-                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-primary-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Compartir"
                           >
                             <Share2 size={16} />
                           </button>
                           <button 
                             onClick={() => openEditBudgetModal(budget)}
-                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
+                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-primary-600 shadow-sm transition-all"
                             title="Editar Presupuesto"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button 
                             onClick={() => deleteBudget(budget.id)}
-                            className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-red-500 shadow-sm transition-all"
+                            className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-red-500 shadow-sm transition-all"
                             title="Eliminar"
                           >
                             <Trash2 size={16} />

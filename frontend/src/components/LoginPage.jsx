@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { jwtDecode } from 'jwt-decode';
 import { authService } from '../services/api';
 
 export default function LoginPage({ onSuccess, onError }) {
@@ -10,25 +9,18 @@ export default function LoginPage({ onSuccess, onError }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleAccessToken = async (accessToken) => {
     try {
       setError(null);
 
-      if (!credentialResponse?.credential) {
+      if (!accessToken) {
         setError('Google no devolvió una credencial válida. Inténtalo de nuevo.');
         if (onError) onError();
         return;
       }
 
-      const googleUser = jwtDecode(credentialResponse.credential);
-      if (!googleUser?.email) {
-        setError('No pudimos identificar el email de la cuenta de Google.');
-        if (onError) onError();
-        return;
-      }
-
       setLoading(true);
-      const data = await authService.googleLogin(credentialResponse.credential);
+      const data = await authService.googleLogin(accessToken);
       onSuccess(data.access_token);
     } catch (err) {
       console.error('Google Login Error:', err);
@@ -40,8 +32,21 @@ export default function LoginPage({ onSuccess, onError }) {
         setError('Error al iniciar sesión con Google.');
       }
       if (onError) onError();
+    } finally {
+      setLoading(false);
     }
   };
+
+  const googleLogin = useGoogleLogin({
+    flow: 'implicit',
+    onSuccess: (tokenResponse) => {
+      void handleGoogleAccessToken(tokenResponse?.access_token);
+    },
+    onError: () => {
+      setError('Error al conectar con Google');
+      if (onError) onError();
+    },
+  });
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -71,24 +76,28 @@ export default function LoginPage({ onSuccess, onError }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: 'var(--color-bg-primary)' }}>
-      <div className="w-full max-w-md p-8 rounded-2xl shadow-xl text-center animate-in fade-in zoom-in duration-300" style={{ background: 'var(--color-bg-secondary)' }}>
-        
-        {/* Logo SVG inline */}
-        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-cyan))' }}>
-          <img 
-            src="/logo.png" 
-            alt="OctopusFlow Logo" 
-            className="w-full h-full object-contain p-2"
-          />
+    <div className="min-h-screen px-4 py-4 overflow-y-auto" style={{ background: 'var(--color-bg-primary)' }}>
+      <div className="max-w-xs w-full mx-auto animate-in fade-in zoom-in duration-300">
+        <div className="text-center mb-3">
+          <div className="flex justify-center">
+            <img
+              src="/images/logos/logo.png"
+              alt="OctopusFlow Logo"
+              className="h-[90px] w-auto object-contain"
+            />
+          </div>
         </div>
 
-        <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-brand-dark)' }}>
-          OctopusFlow
-        </h1>
-        <p className="mb-6" style={{ color: 'var(--color-text-muted)' }}>
-          Gestiona presupuestos y propuestas comerciales
-        </p>
+        <div
+          className="rounded-xl shadow-md p-4 border"
+          style={{
+            background: 'var(--color-bg-secondary)',
+            borderColor: 'var(--color-border)'
+          }}
+        >
+          <h1 className="text-xl font-bold mb-2 text-center" style={{ color: 'var(--color-brand-dark)' }}>
+            Iniciar sesión
+          </h1>
 
         {error && (
           <div className="p-3 rounded-lg text-sm mb-6 flex items-center gap-2 text-left" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }}>
@@ -97,10 +106,37 @@ export default function LoginPage({ onSuccess, onError }) {
           </div>
         )}
 
-        {/* Email/Password Form */}
-        <form onSubmit={handleEmailLogin} className="space-y-4 mb-6 text-left">
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => googleLogin()}
+            disabled={loading}
+            className="w-full rounded-lg border px-4 py-2.5 flex items-center justify-center gap-2 transition-all disabled:opacity-70"
+            style={{ borderColor: 'var(--color-border)', color: 'var(--color-brand-blue)', background: 'transparent' }}
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <span className="text-2xl font-black leading-none" style={{ color: 'var(--color-brand-blue)' }}>
+                G
+              </span>
+            )}
+            <span className="font-semibold">Continuar con Google</span>
+          </button>
+        </div>
+
+        <div className="my-3 flex items-center gap-3">
+          <div className="h-px flex-1" style={{ background: 'var(--color-border)' }} />
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>o</span>
+          <div className="h-px flex-1" style={{ background: 'var(--color-border)' }} />
+        </div>
+
+        <form onSubmit={handleEmailLogin} className="rounded-xl border p-3 space-y-3 text-left" style={{ borderColor: 'var(--color-border)' }}>
+          <p className="text-sm font-semibold" style={{ color: 'var(--color-brand-dark)' }}>
+            Ingresar con usuario y contraseña
+          </p>
           <div>
-            <label className="block text-xs font-bold uppercase mb-1" style={{ color: 'var(--color-text-muted)' }}>
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
               Email
             </label>
             <input 
@@ -118,7 +154,7 @@ export default function LoginPage({ onSuccess, onError }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase mb-1" style={{ color: 'var(--color-text-muted)' }}>
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
               Contraseña
             </label>
             <input 
@@ -142,50 +178,22 @@ export default function LoginPage({ onSuccess, onError }) {
             style={{ 
               background: 'var(--color-brand-blue)',
               color: 'white',
-              boxShadow: '0 4px 14px rgba(2, 83, 115, 0.3)'
+              boxShadow: 'none'
             }}
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : 'Ingresar'}
           </button>
         </form>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full" style={{ borderTop: '1px solid var(--color-border)' }}></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4" style={{ background: 'var(--color-bg-secondary)', color: 'var(--color-text-muted)' }}>
-              O iniciá con Google
-            </span>
-          </div>
-        </div>
-
-        {/* Google Button */}
-        <div className="flex justify-center w-full">
-            {loading ? (
-                <div className="h-10 w-full rounded flex items-center justify-center text-sm" style={{ background: 'var(--color-bg-tertiary)', color: 'var(--color-text-muted)' }}>
-                    Procesando...
-                </div>
-            ) : (
-                <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => {
-                        setError('Error al conectar con Google');
-                        if (onError) onError();
-                    }}
-                    useOneTap={false}
-                    shape="rectangular"
-                    theme="outline"
-                    size="large"
-                    width="100%"
-                    text="continue_with"
-                />
-            )}
-        </div>
-
-        <p className="mt-8 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          OctopusFlow &copy; {new Date().getFullYear()} OctopusTrack
+        <p className="mt-3 text-center text-[11px] leading-snug" style={{ color: 'var(--color-text-muted)' }}>
+          Al iniciar sesión, aceptas nuestros términos de servicio y política de privacidad.
         </p>
+
+      </div>
+
+      <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+        © {new Date().getFullYear()} OctopusTrack. Todos los derechos reservados.
+      </p>
       </div>
     </div>
   );

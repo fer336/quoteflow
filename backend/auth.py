@@ -11,6 +11,9 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 import os
+import json
+from urllib import request as urllib_request
+from urllib.error import HTTPError, URLError
 
 auth_router = APIRouter()
 
@@ -118,6 +121,50 @@ class GoogleLoginRequest(BaseModel):
     token: str
 
 
+def _resolve_google_identity(google_token: str) -> dict:
+    """
+    Acepta ID token (JWT) o access token OAuth de Google y devuelve
+    los datos mínimos de identidad requeridos por el sistema.
+    """
+    # Caso 1: ID token JWT (flujo clásico de GoogleLogin)
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            google_token, requests.Request(), GOOGLE_CLIENT_ID
+        )
+        return {
+            "email": idinfo["email"],
+            "name": idinfo.get("name"),
+            "picture": idinfo.get("picture"),
+            "sub": idinfo["sub"],
+        }
+    except ValueError:
+        pass
+
+    # Caso 2: access token OAuth (flujo con botón custom)
+    try:
+        req = urllib_request.Request(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {google_token}"},
+        )
+        with urllib_request.urlopen(req, timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError):
+        raise HTTPException(status_code=401, detail="Invalid Google Token")
+
+    email = payload.get("email")
+    google_id = payload.get("sub")
+
+    if not email or not google_id:
+        raise HTTPException(status_code=401, detail="Invalid Google Token")
+
+    return {
+        "email": email,
+        "name": payload.get("name"),
+        "picture": payload.get("picture"),
+        "sub": google_id,
+    }
+
+
 # --- Endpoints ---
 
 
@@ -161,17 +208,12 @@ def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db)):
             detail="Server configuration error: Google Client ID missing.",
         )
 
-    try:
-        # 1. Verificar token con Google
-        idinfo = id_token.verify_oauth2_token(
-            request.token, requests.Request(), GOOGLE_CLIENT_ID
-        )
-        email = idinfo["email"]
-        name = idinfo.get("name")
-        picture = idinfo.get("picture")
-        google_id = idinfo["sub"]
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid Google Token")
+    # 1. Verificar token con Google (ID token o access token)
+    identity = _resolve_google_identity(request.token)
+    email = identity["email"]
+    name = identity.get("name")
+    picture = identity.get("picture")
+    google_id = identity["sub"]
 
     # 2. Buscar usuario
     user = db.query(User).filter(User.email == email).first()
