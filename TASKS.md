@@ -8,6 +8,7 @@
 ## 🟡 En progreso
 
 ## 🟢 Hecho
+- [x] Corregir metadatos OG/Twitter para WhatsApp (texto e imagen) ✅ 2026-04-28
 - [x] Actualizar metadata (title + og-image) y reordenar assets en frontend/public/images ✅ 2026-04-28
 - [x] Igualar ancho de columnas Estado, Total y Acciones en tabla desktop ✅ 2026-04-28
 - [x] Reordenar columnas de tabla: ID, Fecha, Cliente, Estado, Total, Acciones ✅ 2026-04-28
