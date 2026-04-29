@@ -10,7 +10,7 @@ else:
     load_dotenv()
 
 from database import engine, Base, ensure_legacy_schema_compatibility
-from routers import budgets, budget_items, clients, company
+from routers import budgets, budget_items, clients, company, admin_users
 from auth import auth_router
 from fastapi.staticfiles import StaticFiles
 import os
@@ -56,6 +56,7 @@ app.include_router(
 app.include_router(clients.router, prefix="/api/clients", tags=["clients"])
 app.include_router(company.router, prefix="/api/company", tags=["company"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(admin_users.router, prefix="/api/admin", tags=["admin-cms"])
 
 
 @app.get("/")

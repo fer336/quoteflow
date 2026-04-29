@@ -18,6 +18,7 @@ import StatusBadge from './components/StatusBadge';
 import ClientsManager from './components/ClientsManager';
 import SettingsModal from './components/SettingsModal';
 import LoginPage from './components/LoginPage';
+import MembershipExpiredPage from './components/MembershipExpiredPage';
 import { budgetService } from './services/api';
 import { useProductTour } from './tours/productTour';
 
@@ -30,6 +31,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [membershipExpired, setMembershipExpired] = useState(false);
   
   // State for Editing
   const [editingBudget, setEditingBudget] = useState(null);
@@ -88,10 +90,13 @@ export default function App() {
       const data = await budgetService.getAll();
       setBudgets(data);
       setError(null);
-    } catch (err) {
-      console.error('Error loading budgets:', err);
+      } catch (err) {
+        console.error('Error loading budgets:', err);
       if (err.response && err.response.status === 401) {
-        handleLogout(); // Force logout if backend rejects token
+        handleLogout();
+      } else if (err.response && err.response.status === 403 && err.response.data?.detail === 'MEMBERSHIP_EXPIRED') {
+        handleLogout();
+        setMembershipExpired(true);
       } else {
         setError('Error al cargar los presupuestos.');
       }
@@ -221,9 +226,24 @@ export default function App() {
     b.budget_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (membershipExpired) {
+    return <MembershipExpiredPage onBackToLogin={() => setMembershipExpired(false)} />;
+  }
+
   // --- RENDER LOGIN IF NO USER ---
   if (!user) {
-    return <LoginPage onSuccess={handleLoginSuccess} onError={() => setError('Login Failed')} />;
+    return (
+      <LoginPage
+        onSuccess={handleLoginSuccess}
+        onError={(code) => {
+          if (code === 'MEMBERSHIP_EXPIRED') {
+            setMembershipExpired(true);
+          } else {
+            setError('Login Failed');
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -233,7 +253,12 @@ export default function App() {
         <div className="flex items-center gap-2">
           {/* Octopus Logo */}
           <div className="w-9 h-9 rounded-lg flex items-center justify-center">
-            <img src="/images/favicon/favicon.svg" alt="Logo" className="w-full h-full" />
+            <img
+              src="/images/logos/logo-header@1x.png"
+              srcSet="/images/logos/logo-header@1x.png 1x, /images/logos/logo-header@2x.png 2x, /images/logos/logo-header@3x.png 3x"
+              alt="Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <span className="font-bold text-base tracking-tight hidden md:block" style={{ color: 'var(--color-brand-dark)' }}>OctopusFlow</span>
         </div>

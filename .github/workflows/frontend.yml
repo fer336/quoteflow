@@ -14,6 +14,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/frontend
+  IMAGE_NAME_CMS: ${{ github.repository }}/frontend-cms
   NODE_VERSION: '18'
 
 jobs:
@@ -74,6 +75,38 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://presupuestos.octopustrack.shop/api/admin' }}
+            VITE_APP_MODE=tenant
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for CMS Docker image
+        id: meta_cms
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CMS }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push CMS frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta_cms.outputs.tags }}
+          labels: ${{ steps.meta_cms.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://presupuestos.octopustrack.shop/api/admin' }}
+            VITE_APP_MODE=cms
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -81,6 +114,8 @@ jobs:
         run: |
           echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Image CMS: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CMS }}"
+          echo "Tags CMS: ${{ steps.meta_cms.outputs.tags }}"
 
       - name: Notify Portainer
         if: vars.PORTAINER_WEBHOOK_URL

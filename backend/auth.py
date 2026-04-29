@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from database import get_db
@@ -70,6 +71,14 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
+def _validate_password_strength(password: str):
+    if len(password or "") < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="WEAK_PASSWORD_MIN_8",
+        )
+
+
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
@@ -79,6 +88,27 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def _enforce_membership(user: User, db: Session):
+    """Bloquea automáticamente usuarios con membresía vencida."""
+    role = (getattr(user, "role", None) or "").lower()
+    if role in {"admin", "superadmin"}:
+        return
+
+    expires_at = getattr(user, "membership_expires_at", None)
+    if expires_at:
+        safe_expires = (
+            expires_at.replace(tzinfo=None) if getattr(expires_at, "tzinfo", None) else expires_at
+        )
+        if safe_expires <= datetime.utcnow():
+            if user.is_active:
+                user.is_active = False
+                db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="MEMBERSHIP_EXPIRED",
+            )
 
 
 # --- Dependency ---
@@ -105,6 +135,8 @@ def get_current_user(
     if user is None:
         raise credentials_exception
 
+    _enforce_membership(user, db)
+
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Usuario inactivo")
 
@@ -115,10 +147,15 @@ def get_current_user(
 class Token(BaseModel):
     access_token: str
     token_type: str
+    password_required: bool = False
 
 
 class GoogleLoginRequest(BaseModel):
     token: str
+
+
+class SetPasswordRequest(BaseModel):
+    password: str
 
 
 def _resolve_google_identity(google_token: str) -> dict:
@@ -176,11 +213,20 @@ def login_for_access_token(
     Login estándar con Email y Contraseña.
     """
     user = db.query(User).filter(User.email == form_data.username).first()
-    if (
-        not user
-        or not user.hashed_password
-        or not verify_password(form_data.password, user.hashed_password)
-    ):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.hashed_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="PASSWORD_NOT_SET",
+        )
+
+    if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -190,11 +236,17 @@ def login_for_access_token(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
+    _enforce_membership(user, db)
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "password_required": False,
+    }
 
 
 @auth_router.post("/google", response_model=Token)
@@ -228,6 +280,8 @@ def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Usuario inactivo")
 
+    _enforce_membership(user, db)
+
     # 3. Actualizar info de Google si cambió
     if (
         user.google_id != google_id
@@ -238,14 +292,51 @@ def google_login(request: GoogleLoginRequest, db: Session = Depends(get_db)):
         user.picture = picture
         if name:
             user.name = name
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="GOOGLE_ACCOUNT_ALREADY_LINKED",
+            )
 
     # 4. Generar JWT interno
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "password_required": not bool(user.hashed_password),
+    }
+
+
+@auth_router.post("/set-password", response_model=Token)
+def set_password_after_google(
+    payload: SetPasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    _enforce_membership(current_user, db)
+    _validate_password_strength(payload.password)
+
+    current_user.hashed_password = get_password_hash(payload.password)
+    db.commit()
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": current_user.email}, expires_delta=access_token_expires
+    )
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "password_required": False,
+    }
 
 
 @auth_router.get("/me", response_model=UserResponse)

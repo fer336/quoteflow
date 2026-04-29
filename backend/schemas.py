@@ -18,6 +18,8 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: int
     is_active: bool
+    role: Optional[str] = "operador"
+    membership_expires_at: Optional[datetime] = None
     created_at: datetime
 
     # === Branding ===

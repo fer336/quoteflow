@@ -32,7 +32,10 @@ class User(Base):
     picture = Column(String, nullable=True)
     logo_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
+    role = Column(String(50), default="operador")
+    membership_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # === Branding / Empresa ===
     company_name = Column(String, nullable=True)

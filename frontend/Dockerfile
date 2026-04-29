@@ -21,10 +21,14 @@ COPY . .
 # Argumentos de construcción (Secrets públicos necesarios para el build)
 ARG VITE_API_URL
 ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_ADMIN_API_URL
+ARG VITE_APP_MODE=tenant
 
 # Establecer variables de entorno para el build
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_ADMIN_API_URL=$VITE_ADMIN_API_URL
+ENV VITE_APP_MODE=$VITE_APP_MODE
 
 RUN npm run build
 

@@ -4,10 +4,45 @@
 - [ ] Testear nuevo Settings en el sistema deployed (testing)
 - [ ] Probar PDF con branding fields cargados
 - [ ] Merge a main cuando todo esté OK
+- [ ] Validar manualmente CMS admin (CRUD + membresía) en entorno local
+- [ ] Migrar users a UUID por fases (dual-key + backfill + cutover)
+- [ ] Validar política final: superadmin sin membresía y operadores con membresía
+- [ ] Ejecutar y validar SQL de Fase 1 UUID en entorno de testing
+- [ ] Implementar Fase 2 UUID (dual-write en app principal)
+- [b] 🐛 Resolver error DB en login CMS: columna users.role inexistente
+- [b] 🐛 Resolver 500 en /api/auth/google tenant (respuesta vacía)
+- [ ] Deployar CMS en producción en cms-flow.octopustrack.shop
 
 ## 🟡 En progreso
+- [/] Validar flujo local: backend :8000 + npm run dev:tenant / npm run dev:cms
+- [/] Validar login CMS por Google y regla de membresía solo para operadores
+- [/] Confirmar frontend único (sin carpeta admin-cms) con paleta del tenant
+- [/] 🐛 Resolver 500 en /api/auth/google tenant (respuesta vacía)
+- [/] Deployar CMS en producción en cms-flow.octopustrack.shop
 
 ## 🟢 Hecho
+- [x] Preparar infraestructura de deploy CMS (imagen frontend-cms + Traefik + CORS multi-dominio) ✅ 2026-04-29
+- [x] 🐛 Corregir login principal para leer email/password aunque navegador autocompleta ✅ 2026-04-29
+- [x] Implementar onboarding sin contraseña desde CMS (seteo al ingresar con Google) ✅ 2026-04-29
+- [x] 🐛 Hacer robusto delete de usuarios en CMS ✅ 2026-04-29
+- [x] Agregar eliminación de usuarios desde CMS (backend + frontend) ✅ 2026-04-29
+- [x] 🐛 Permitir salir de modo "Editar usuario" y volver a "Crear usuario" ✅ 2026-04-29
+- [x] Unificar branding CMS con sistema principal (logo + naming OctopusFlow) ✅ 2026-04-29
+- [x] Cambiar login CMS a Google OAuth (superadmin único) ✅ 2026-04-29
+- [x] Eliminar carpeta admin-cms y consolidar CMS en frontend principal ✅ 2026-04-29
+- [x] Agregar modo frontend CMS por VITE_APP_MODE en puerto 5174 ✅ 2026-04-29
+- [x] Inicializar Alembic en backend y crear migración base de membresía/rol ✅ 2026-04-29
+- [x] Verificar/instalar Alembic en entorno local backend ✅ 2026-04-29
+- [x] Unificar CMS para usar backend principal (:8000) vía /api/admin ✅ 2026-04-29
+- [x] Exponer scripts raíz npm run dev:tenant y npm run dev:cms ✅ 2026-04-29
+- [x] Diseñar Fase 1 UUID sin downtime (script SQL dual-key + backfill) ✅ 2026-04-29
+- [x] Implementar gate de superadmin en CMS (auth + protección endpoints) ✅ 2026-04-29
+- [x] Crear CMS admin separado (backend + frontend + docker + README) ✅ 2026-04-29
+- [x] Cambiar logo del login a SVG para evitar pixelado ✅ 2026-04-28
+- [x] Integrar logo-header también en pantalla de login ✅ 2026-04-28
+- [x] Integrar logo-header nuevo en UI del sistema ✅ 2026-04-28
+- [x] Ajustar favicon para mayor tamaño visual en pestaña del navegador ✅ 2026-04-28
+- [x] Revisar y reestructurar favicons según buenas prácticas SEO ✅ 2026-04-28
 - [x] Corregir metadatos OG/Twitter para WhatsApp (texto e imagen) ✅ 2026-04-28
 - [x] Actualizar metadata (title + og-image) y reordenar assets en frontend/public/images ✅ 2026-04-28
 - [x] Igualar ancho de columnas Estado, Total y Acciones en tabla desktop ✅ 2026-04-28

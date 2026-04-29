@@ -18,7 +18,7 @@ services:
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
       - GOOGLE_CLIENT_ID_FILE=/run/secrets/backend.env
-      - CORS_ORIGINS=https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop
+      - CORS_ORIGINS=https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop,https://cms-flow.octopustrack.shop,http://cms-flow.octopustrack.shop
     volumes:
       - budgetpro_static:/app/static
     deploy:
@@ -34,11 +34,11 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=network_public"
-        - "traefik.http.routers.quoteflow-api.rule=Host(`presupuestos.octopustrack.shop`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.quoteflow-api.rule=(Host(`presupuestos.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/api`)"
         - "traefik.http.routers.quoteflow-api.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-api.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.quoteflow-backend.loadbalancer.server.port=8000"
-        - "traefik.http.routers.quoteflow-static.rule=Host(`presupuestos.octopustrack.shop`) && PathPrefix(`/static`)"
+        - "traefik.http.routers.quoteflow-static.rule=(Host(`presupuestos.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/static`)"
         - "traefik.http.routers.quoteflow-static.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-static.tls.certresolver=letsencryptresolver"
 
@@ -66,6 +66,31 @@ services:
         - "traefik.http.routers.quoteflow-frontend.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-frontend.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.quoteflow-frontend.loadbalancer.server.port=80"
+
+  frontend-cms:
+    image: ghcr.io/fer336/quoteflow/frontend-cms:latest
+    networks:
+      - network_public
+      - budgetpro-internal
+    depends_on:
+      - backend
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_public"
+        - "traefik.http.routers.quoteflow-cms.rule=Host(`cms-flow.octopustrack.shop`)"
+        - "traefik.http.routers.quoteflow-cms.entrypoints=websecure"
+        - "traefik.http.routers.quoteflow-cms.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.quoteflow-cms.loadbalancer.server.port=80"
 
 networks:
   network_public:
