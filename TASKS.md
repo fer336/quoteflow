@@ -3,7 +3,6 @@
 ## 🔴 Pendiente
 - [ ] Testear nuevo Settings en el sistema deployed (testing)
 - [ ] Probar PDF con branding fields cargados
-- [ ] Merge a main cuando todo esté OK
 - [ ] Validar manualmente CMS admin (CRUD + membresía) en entorno local
 - [ ] Migrar users a UUID por fases (dual-key + backfill + cutover)
 - [ ] Validar política final: superadmin sin membresía y operadores con membresía
@@ -20,6 +19,7 @@
 - [/] 🐛 Resolver 500 en /api/auth/google tenant (respuesta vacía)
 - [/] Deployar CMS en producción en cms-flow.octopustrack.shop
 - [/] Revisar ausencia de deploy en testing/producción y re-disparar pipeline
+- [/] Mergear testing a main
 
 ## 🟢 Hecho
 - [x] Migrar dominio tenant a login-flow.octopustrack.shop en infra + frontend ✅ 2026-04-29
