@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
-import { Calculator, AlertCircle, Loader2 } from 'lucide-react';
-import { jwtDecode } from 'jwt-decode';
+import { useGoogleLogin } from '@react-oauth/google';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { authService } from '../services/api';
 
 export default function LoginPage({ onSuccess, onError }) {
@@ -9,73 +8,69 @@ export default function LoginPage({ onSuccess, onError }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [pendingGoogleAuth, setPendingGoogleAuth] = useState(null);
+  const [passwordSetupToken, setPasswordSetupToken] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleAccessToken = async (accessToken) => {
     try {
       setError(null);
 
-      if (!credentialResponse?.credential) {
+      if (!accessToken) {
         setError('Google no devolvió una credencial válida. Inténtalo de nuevo.');
         if (onError) onError();
         return;
       }
 
-      const googleUser = jwtDecode(credentialResponse.credential);
-      if (!googleUser?.email) {
-        setError('No pudimos identificar el email de la cuenta de Google.');
-        if (onError) onError();
+      setLoading(true);
+      const data = await authService.googleLogin(accessToken);
+      if (data.password_required) {
+        setPasswordSetupToken(data.access_token);
+        setError('Tu cuenta todavía no tiene contraseña. Definila para continuar.');
         return;
       }
-
-      setPendingGoogleAuth({
-        credential: credentialResponse.credential,
-        email: googleUser.email,
-        name: googleUser.name,
-      });
-    } catch (err) {
-      console.error('Google Login Decode Error:', err);
-      setError('No pudimos validar la cuenta elegida en Google. Inténtalo de nuevo.');
-      if (onError) onError();
-    }
-  };
-
-  const handleConfirmGoogleLogin = async () => {
-    if (!pendingGoogleAuth?.credential) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      // Canjeamos el token de Google por nuestro JWT interno
-      const data = await authService.googleLogin(pendingGoogleAuth.credential);
-      setPendingGoogleAuth(null);
       onSuccess(data.access_token);
     } catch (err) {
       console.error('Google Login Error:', err);
-      // Check if it's a 403 (User not registered)
-      if (err.response && err.response.status === 403) {
-        setError('Acceso denegado. Tu usuario no está registrado en el sistema.');
-      } else if (err.response && err.response.status === 400 && err.response.data.detail === "Usuario inactivo") {
-        setError('Tu cuenta está inactiva. Contacta al administrador.');
-      } else {
-        setError('Error al iniciar sesión con Google.');
-      }
-      if (onError) onError();
+        if (err.response && err.response.status === 403 && err.response.data?.detail === 'MEMBERSHIP_EXPIRED') {
+          setError('Tu membresía está vencida. Realizá tu pago para continuar.');
+          if (onError) onError('MEMBERSHIP_EXPIRED');
+        } else if (err.response && err.response.status === 403) {
+          setError('Acceso denegado. Tu usuario no está registrado en el sistema.');
+          if (onError) onError('ACCESS_DENIED');
+        } else if (err.response && err.response.status === 400 && err.response.data.detail === "Usuario inactivo") {
+          setError('Tu cuenta está inactiva. Contacta al administrador.');
+          if (onError) onError('INACTIVE_USER');
+        } else {
+          setError('Error al iniciar sesión con Google.');
+          if (onError) onError('UNKNOWN_ERROR');
+        }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancelGoogleLogin = () => {
-    setPendingGoogleAuth(null);
-    setError('Inicio de sesión con Google cancelado. No se guardó ninguna sesión.');
-  };
+  const googleLogin = useGoogleLogin({
+    flow: 'implicit',
+    onSuccess: (tokenResponse) => {
+      void handleGoogleAccessToken(tokenResponse?.access_token);
+    },
+    onError: () => {
+      setError('Error al conectar con Google');
+      if (onError) onError();
+    },
+  });
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    const form = e.currentTarget;
+    const emailFromForm = form?.elements?.email?.value?.trim?.() || email.trim();
+    const passwordFromForm = form?.elements?.password?.value || password;
+
+    setEmail(emailFromForm);
+    setPassword(passwordFromForm);
+
+    if (!emailFromForm || !passwordFromForm) {
       setError('Por favor completa todos los campos.');
       return;
     }
@@ -83,138 +78,246 @@ export default function LoginPage({ onSuccess, onError }) {
     try {
       setLoading(true);
       setError(null);
-      const data = await authService.login(email, password);
+      const data = await authService.login(emailFromForm, passwordFromForm);
       onSuccess(data.access_token);
     } catch (err) {
       console.error('Login Error:', err);
       if (err.response && err.response.status === 401) {
          setError('Email o contraseña incorrectos.');
-      } else if (err.response && err.response.status === 400 && err.response.data.detail === "Inactive user") {
+       } else if (err.response && err.response.status === 403 && err.response.data?.detail === 'PASSWORD_NOT_SET') {
+         setError('Tu cuenta no tiene contraseña. Ingresá con Google para crearla.');
+         if (onError) onError('PASSWORD_NOT_SET');
+       } else if (err.response && err.response.status === 403 && err.response.data?.detail === 'MEMBERSHIP_EXPIRED') {
+         setError('Tu membresía está vencida. Realizá tu pago para continuar.');
+         if (onError) onError('MEMBERSHIP_EXPIRED');
+       } else if (err.response && err.response.status === 400 && err.response.data.detail === "Inactive user") {
          setError('Tu cuenta está inactiva. Contacta al administrador.');
-      } else {
+         if (onError) onError('INACTIVE_USER');
+       } else {
          setError('Error al iniciar sesión. Inténtalo de nuevo.');
+         if (onError) onError('UNKNOWN_ERROR');
+       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetPassword = async (e) => {
+    e.preventDefault();
+    if (!passwordSetupToken) return;
+
+    if (!newPassword || newPassword.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await authService.setPassword(newPassword, passwordSetupToken);
+      setPasswordSetupToken(null);
+      setNewPassword('');
+      setConfirmNewPassword('');
+      onSuccess(data.access_token);
+    } catch (err) {
+      if (err.response?.status === 400 && err.response?.data?.detail === 'WEAK_PASSWORD_MIN_8') {
+        setError('La contraseña debe tener al menos 8 caracteres.');
+      } else {
+        setError('No se pudo guardar la contraseña. Intentalo de nuevo.');
       }
-      if (onError) onError();
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-xl border border-slate-200 text-center animate-in fade-in zoom-in duration-300">
-        
-        {/* Logo */}
-        <div className="w-16 h-16 bg-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary-200">
-          <Calculator className="text-white w-8 h-8" />
+    <div className="min-h-screen px-4 py-4 overflow-y-auto" style={{ background: 'var(--color-bg-primary)' }}>
+      <div className="max-w-xs w-full mx-auto animate-in fade-in zoom-in duration-300">
+        <div className="text-center mb-3">
+          <div className="flex justify-center">
+            <img
+              src="/images/logos/logo-header.svg"
+              alt="OctopusFlow Logo"
+              className="h-[90px] w-auto object-contain"
+            />
+          </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Bienvenido a QuoteFlow</h1>
-        <p className="text-slate-500 mb-6">Inicia sesión para gestionar presupuestos y propuestas comerciales</p>
+        <div
+          className="rounded-xl shadow-md p-4 border"
+          style={{
+            background: 'var(--color-bg-secondary)',
+            borderColor: 'var(--color-border)'
+          }}
+        >
+          <h1 className="text-xl font-bold mb-2 text-center" style={{ color: 'var(--color-brand-dark)' }}>
+            Iniciar sesión
+          </h1>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-600 p-3 rounded-lg text-sm mb-6 flex items-center gap-2 text-left">
+          <div className="p-3 rounded-lg text-sm mb-6 flex items-center gap-2 text-left" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }}>
             <AlertCircle size={18} className="shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Email/Password Form */}
-        <form onSubmit={handleEmailLogin} className="space-y-4 mb-6 text-left">
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => googleLogin()}
+            disabled={loading}
+            className="w-full rounded-lg border px-4 py-2.5 flex items-center justify-center gap-2 transition-all disabled:opacity-70"
+            style={{ borderColor: 'var(--color-border)', color: 'var(--color-brand-blue)', background: 'transparent' }}
+          >
+            {loading ? (
+              <Loader2 className="animate-spin" size={18} />
+            ) : (
+              <span className="text-2xl font-black leading-none" style={{ color: 'var(--color-brand-blue)' }}>
+                G
+              </span>
+            )}
+            <span className="font-semibold">Continuar con Google</span>
+          </button>
+        </div>
+
+        {passwordSetupToken ? (
+          <form onSubmit={handleSetPassword} className="rounded-xl border p-3 space-y-3 text-left" style={{ borderColor: 'var(--color-border)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--color-brand-dark)' }}>
+              Definí tu contraseña inicial
+            </p>
+            <div>
+              <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
+                Nueva contraseña
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg transition-all outline-none"
+                style={{
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-bg-secondary)',
+                  color: 'var(--color-text-primary)'
+                }}
+                placeholder="Mínimo 8 caracteres"
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
+                Confirmar contraseña
+              </label>
+              <input
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg transition-all outline-none"
+                style={{
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-bg-secondary)',
+                  color: 'var(--color-text-primary)'
+                }}
+                placeholder="Repetí la contraseña"
+                disabled={loading}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2"
+              style={{
+                background: 'var(--color-brand-blue)',
+                color: 'white',
+                boxShadow: 'none'
+              }}
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Guardar contraseña'}
+            </button>
+          </form>
+        ) : (
+          <>
+            <div className="my-3 flex items-center gap-3">
+              <div className="h-px flex-1" style={{ background: 'var(--color-border)' }} />
+              <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>o</span>
+              <div className="h-px flex-1" style={{ background: 'var(--color-border)' }} />
+            </div>
+
+            <form onSubmit={handleEmailLogin} className="rounded-xl border p-3 space-y-3 text-left" style={{ borderColor: 'var(--color-border)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-brand-dark)' }}>
+                Ingresar con usuario y contraseña
+              </p>
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
+              Email
+            </label>
+             <input 
+               name="email"
+               autoComplete="email"
+               type="email" 
+               value={email}
+               onChange={(e) => setEmail(e.target.value)}
+               onInput={(e) => setEmail(e.target.value)}
+               className="w-full px-4 py-2.5 rounded-lg transition-all outline-none"
+              style={{ 
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-bg-secondary)',
+                color: 'var(--color-text-primary)'
+              }}
               placeholder="tu@email.com"
               disabled={loading}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Contraseña</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+            <label className="block text-xs font-bold mb-1" style={{ color: 'var(--color-brand-dark)' }}>
+              Contraseña
+            </label>
+             <input 
+               name="password"
+               autoComplete="current-password"
+               type="password" 
+               value={password}
+               onChange={(e) => setPassword(e.target.value)}
+               onInput={(e) => setPassword(e.target.value)}
+               className="w-full px-4 py-2.5 rounded-lg transition-all outline-none"
+              style={{ 
+                border: '1px solid var(--color-border)',
+                background: 'var(--color-bg-secondary)',
+                color: 'var(--color-text-primary)'
+              }}
               placeholder="••••••••"
               disabled={loading}
             />
           </div>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-primary-600 text-white font-bold py-2.5 rounded-lg hover:bg-primary-700 transition-all shadow-md shadow-primary-200 flex items-center justify-center gap-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Ingresar'}
-          </button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-slate-500">O ingresa con Google</span>
-          </div>
-        </div>
-
-        {/* Google Button */}
-        <div className="flex justify-center w-full">
-            {loading ? (
-                <div className="h-10 w-full bg-slate-100 rounded flex items-center justify-center text-slate-400 text-sm">
-                    Procesando...
-                </div>
-            ) : (
-                <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => {
-                        setError('Error al conectar con Google');
-                        if (onError) onError();
-                    }}
-                    useOneTap={false} // Disabled OneTap to avoid conflicts with form
-                    shape="rectangular"
-                    theme="outline"
-                    size="large"
-                    width="100%"
-                    text="continue_with"
-                />
-            )}
-        </div>
-
-        {pendingGoogleAuth && (
-          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
-            <p className="text-sm font-semibold text-amber-900 mb-1">Confirmá la cuenta de Google antes de entrar</p>
-            <p className="text-sm text-amber-800 mb-3">
-              Vas a ingresar con <span className="font-semibold">{pendingGoogleAuth.email}</span>
-              {pendingGoogleAuth.name ? ` (${pendingGoogleAuth.name})` : ''}. Si no es tu cuenta, cancelá ahora y elegí otra.
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleConfirmGoogleLogin}
+              <button 
+                type="submit" 
                 disabled={loading}
-                className="flex-1 bg-amber-600 text-white font-semibold py-2 rounded-lg hover:bg-amber-700 transition-all disabled:opacity-60"
+                className="w-full font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2"
+                style={{ 
+                  background: 'var(--color-brand-blue)',
+                  color: 'white',
+                  boxShadow: 'none'
+                }}
               >
-                Confirmar y continuar
+                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Ingresar'}
               </button>
-              <button
-                type="button"
-                onClick={handleCancelGoogleLogin}
-                disabled={loading}
-                className="flex-1 border border-amber-300 text-amber-900 font-semibold py-2 rounded-lg hover:bg-amber-100 transition-all disabled:opacity-60"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
+            </form>
+          </>
         )}
 
-        <p className="mt-8 text-xs text-slate-400">
-          QuoteFlow &copy; {new Date().getFullYear()}
+        <p className="mt-3 text-center text-[11px] leading-snug" style={{ color: 'var(--color-text-muted)' }}>
+          Al iniciar sesión, aceptas nuestros términos de servicio y política de privacidad.
         </p>
+
+      </div>
+
+      <p className="mt-3 text-center text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+        © {new Date().getFullYear()} OctopusTrack. Todos los derechos reservados.
+      </p>
       </div>
     </div>
   );

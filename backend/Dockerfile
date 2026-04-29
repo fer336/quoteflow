@@ -1,6 +1,15 @@
 # Usar imagen Debian Bullseye (Estable y compatible)
 FROM python:3.11-slim-bullseye
 
+# Labels para GHCR
+LABEL org.opencontainers.image.source="https://github.com/fer336/quoteflow"
+LABEL org.opencontainers.image.description="QuoteFlow Backend API"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Argumento de versión (para metadata)
+ARG PACKAGE_VERSION=dev
+LABEL org.opencontainers.image.version="${PACKAGE_VERSION}"
+
 # Establecer directorio de trabajo
 WORKDIR /app
 

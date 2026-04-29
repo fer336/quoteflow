@@ -151,12 +151,21 @@ def _build_context(budget, client_data=None):
     company_name = _safe_value(getattr(user, "name", None), "Presupuesto comercial")
     status, status_slug = _status_value(budget)
 
+    # Payment terms del branding del usuario o default
+    user_payment_terms = _safe_value(getattr(user, "payment_terms", None), "-")
+
     return {
         "company": {
             "name": company_name,
             "display_name": _company_display_name(user),
             "initials": _company_initials(company_name),
             "logo_data_uri": _resolve_logo_data_uri(budget),
+            # === Nuevos campos de branding ===
+            "business_name": _safe_value(getattr(user, "business_name", None)),
+            "tax_id": _safe_value(getattr(user, "tax_id", None)),
+            "address": _safe_value(getattr(user, "address", None)),
+            "phone": _safe_value(getattr(user, "phone", None)),
+            "email": _safe_value(getattr(user, "email_contact", None)),
         },
         "budget": {
             "number": _safe_value(getattr(budget, "budget_id", None)),
@@ -167,7 +176,7 @@ def _build_context(budget, client_data=None):
             "status_slug": status_slug,
             "total": _format_currency(getattr(budget, "total", 0)),
             "document_letter": "X",
-            "payment_terms": "-",
+            "payment_terms": user_payment_terms,
             "notice": "Documento emitido únicamente como presupuesto. No reemplaza comprobantes fiscales.",
         },
         "client": {
@@ -196,7 +205,8 @@ def _render_pdf_with_weasyprint(html_content):
         raise RuntimeError("WeasyPrint no está instalado en el entorno") from error
 
     pdf_bytes = HTML(string=html_content, base_url=str(TEMPLATE_DIR)).write_pdf(
-        stylesheets=[CSS(filename=str(STYLESHEET_PATH))]
+        stylesheets=[CSS(filename=str(STYLESHEET_PATH))],
+        presentational_hints=True,
     )
     buffer = BytesIO(pdf_bytes)
     buffer.seek(0)

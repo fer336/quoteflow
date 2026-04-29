@@ -157,7 +157,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                 if (showForm) resetForm();
                 else setShowForm(true);
               }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${showForm ? 'bg-slate-100 text-slate-600' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
+              className="px-4 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all" style={{ background: showForm ? 'var(--color-bg-tertiary)' : 'var(--color-brand-blue)', color: showForm ? 'var(--color-text-primary)' : 'white' }}
             >
               <Plus size={16} className={showForm ? "rotate-45 transition-transform" : ""} />
               {showForm ? 'Cancelar' : 'Nuevo Cliente'}
@@ -250,7 +250,7 @@ export default function ClientsManager({ isOpen, onClose, onSelectClient }) {
                 <button 
                   data-tour="clients-form-submit"
                   type="submit" 
-                  className="w-full md:w-auto bg-primary-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
+                  className="w-full md:w-auto text-white px-4 py-1.5 rounded-md text-sm font-medium transition-all" style={{ background: 'var(--color-brand-blue)' }}
                 >
                   {editingId ? 'Actualizar Cliente' : 'Guardar Cliente'}
                 </button>

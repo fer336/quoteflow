@@ -56,10 +56,36 @@ def ensure_legacy_schema_compatibility():
     client_columns = {column["name"] for column in inspector.get_columns("clients")}
 
     if "tipo_inmueble" not in client_columns:
-        with engine.begin() as connection:
-            connection.execute(
-                text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
-            )
+        try:
+            with engine.begin() as connection:
+                connection.execute(
+                    text("ALTER TABLE clients ADD COLUMN tipo_inmueble VARCHAR")
+                )
+        except Exception as e:
+            print(f"Warning: No se pudo agregar columna tipo_inmueble: {e}")
+
+    # Verificar que las columnas de branding existan (solo informational)
+    if "users" in table_names:
+        user_columns = {column["name"] for column in inspector.get_columns("users")}
+        branding_cols = {"company_name", "business_name", "tax_id", "address", "phone", "email_contact", "payment_terms"}
+        missing = branding_cols - user_columns
+        if missing:
+            print(f"INFO: Columnas de branding faltantes en DB: {missing}. Agregar manualmente con usuario postgres.")
+
+        membership_cols_sql = {
+            "role": "ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'operador'",
+            "membership_expires_at": "ALTER TABLE users ADD COLUMN membership_expires_at TIMESTAMP WITH TIME ZONE",
+            "updated_at": "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
+        }
+
+        for column_name, ddl in membership_cols_sql.items():
+            if column_name not in user_columns:
+                try:
+                    with engine.begin() as connection:
+                        connection.execute(text(ddl))
+                    print(f"INFO: Columna users.{column_name} agregada automáticamente.")
+                except Exception as e:
+                    print(f"Warning: No se pudo agregar columna users.{column_name}: {e}")
 
 
 # Dependency

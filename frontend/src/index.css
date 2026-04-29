@@ -2,13 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Blue/Cyan Brand Palette */
+  --color-brand-dark: #081b26;
+  --color-brand-blue: #025373;
+  --color-brand-cyan: #04b2d9;
+  --color-brand-light: #049dd9;
+
+  --color-bg-primary: #f5faff;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #e8f6fc;
+  --color-text-primary: #081b26;
+  --color-text-secondary: #025373;
+  --color-text-muted: #5a7a8a;
+  --color-border: #cce6f0;
+  --color-border-focus: #04b2d9;
+
+  /* Driver.js (Product Tour) */
+  --driver-popover-bg-color: #ffffff;
+  --driver-popover-title-color: #081b26;
+  --driver-popover-description-color: #2d4a5a;
+  --driver-popover-border-color: #cce6f0;
+  --driver-overlay-color: rgba(8, 27, 38, 0.72);
+  --driver-popover-border-radius: 12px;
+}
+
 @layer base {
   * {
-    @apply border-slate-200;
+    border-color: var(--color-border);
   }
   
   body {
-    @apply font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
   }
 }
 
@@ -61,46 +90,72 @@
   }
 }
 
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Driver.js overrides */
 .driver-popover {
   border-radius: 1rem;
-  border: 1px solid rgb(226 232 240);
-  box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+  border: 1px solid var(--driver-popover-border-color);
+  box-shadow: 0 25px 50px -12px rgba(8, 27, 38, 0.25);
 }
 
 .driver-popover-title {
   font-size: 1rem;
   font-weight: 700;
-  color: rgb(15 23 42);
+  color: var(--driver-popover-title-color);
 }
 
 .driver-popover-description {
-  color: rgb(71 85 105);
+  color: var(--driver-popover-description-color);
   line-height: 1.5;
 }
 
 .driver-popover-progress-text {
-  color: rgb(100 116 139);
+  color: var(--color-text-muted);
 }
 
 .driver-popover-footer button {
   border-radius: 0.75rem;
-  border: 1px solid rgb(203 213 225);
-  background: white;
-  color: rgb(15 23 42);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
   text-shadow: none;
   box-shadow: none;
 }
 
 .driver-popover-footer button.driver-popover-next-btn {
-  background: rgb(37 99 235);
-  border-color: rgb(37 99 235);
+  background: var(--color-brand-blue);
+  border-color: var(--color-brand-blue);
   color: white;
 }
 
 .driver-popover-footer button:hover {
-  background: rgb(241 245 249);
+  background: var(--color-bg-tertiary);
 }
 
 .driver-popover-footer button.driver-popover-next-btn:hover {
-  background: rgb(29 78 216);
+  background: var(--color-brand-cyan);
 }

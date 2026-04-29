@@ -7,21 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af', // El azul usado en el PDF
-          900: '#1e3a8a',
+        brand: {
+          dark: '#081b26',
+          blue: '#025373',
+          cyan: '#04b2d9',
+          light: '#049dd9',
         }
       }
     },
   },
   plugins: [],
 }
-

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://login-flow.octopustrack.shop/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,9 +9,24 @@ const api = axios.create({
   },
 });
 
+const adminApi = axios.create({
+  baseURL: import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:8000/api/admin',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // Interceptor para agregar token a cada petición
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+adminApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('admin_cms_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -129,6 +144,17 @@ export const companyService = {
     });
     return response.data;
   },
+
+  // Company settings (branding)
+  getSettings: async () => {
+    const response = await api.get('/company/settings');
+    return response.data;
+  },
+
+  updateSettings: async (settings) => {
+    const response = await api.patch('/company/settings', settings);
+    return response.data;
+  },
 };
 
 // Auth endpoints
@@ -151,11 +177,40 @@ export const authService = {
     return response.data;
   },
 
+  setPassword: async (password, token) => {
+    const response = await api.post(
+      '/auth/set-password',
+      { password },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  },
+
   // Get current user info
   getMe: async () => {
     const response = await api.get('/auth/me');
     return response.data;
   }
+};
+
+export const adminAuthService = {
+  googleLogin: async (googleToken) => {
+    const response = await adminApi.post('/auth/google', { token: googleToken });
+    return response.data;
+  },
+};
+
+export const adminUsersService = {
+  list: async () => (await adminApi.get('/users')).data,
+  create: async (payload) => (await adminApi.post('/users', payload)).data,
+  update: async (id, payload) => (await adminApi.put(`/users/${id}`, payload)).data,
+  setStatus: async (id, is_active) => (await adminApi.patch(`/users/${id}/status`, { is_active })).data,
+  resetMembership: async (id) => (await adminApi.post(`/users/${id}/reset-membership`)).data,
+  remove: async (id) => (await adminApi.delete(`/users/${id}`)).data,
 };
 
 export default api;
