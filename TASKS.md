@@ -20,6 +20,7 @@
 - [/] 🐛 Resolver 500 en /api/auth/google tenant (respuesta vacía)
 - [/] Deployar CMS en producción en cms-flow.octopustrack.shop
 - [/] Revisar ausencia de deploy en testing/producción y re-disparar pipeline
+- [/] Congelar rama estable del cliente en branch marinkovic
 
 ## 🟢 Hecho
 - [x] Migrar dominio tenant a login-flow.octopustrack.shop en infra + frontend ✅ 2026-04-29
