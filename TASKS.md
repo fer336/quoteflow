@@ -19,13 +19,13 @@
 - [/] 🐛 Resolver 500 en /api/auth/google tenant (respuesta vacía)
 - [/] Deployar CMS en producción en cms-flow.octopustrack.shop
 - [/] Revisar ausencia de deploy en testing/producción y re-disparar pipeline
-- [/] Mergear testing a main
 
 ## 🟢 Hecho
 - [x] Migrar dominio tenant a login-flow.octopustrack.shop en infra + frontend ✅ 2026-04-29
 - [x] Diagnosticar auto-redeploy en Portainer y separar webhooks main/testing ✅ 2026-04-29
 - [x] Congelar rama estable del cliente en branch marinkovic ✅ 2026-04-29
 - [x] Configurar workflows para aislar deploy de cliente marinkovic ✅ 2026-04-29
+- [x] Mergear testing a main ✅ 2026-04-29
 - [x] Centrar visualmente la fila de íconos de acciones en cards mobile del CMS ✅ 2026-04-29
 - [x] Ajustar acciones CMS a una sola fila con botones solo íconos ✅ 2026-04-29
 - [x] Rediseñar CMS mobile-first (bonito + práctico) ✅ 2026-04-29
