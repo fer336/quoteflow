@@ -1,0 +1,148 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - testing
+      - marinkovic
+    paths:
+      - 'frontend/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.portainer.yml'
+      - '.github/workflows/frontend.yml'
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/frontend
+  IMAGE_NAME_CMS: ${{ github.repository }}/frontend-cms
+  NODE_VERSION: '18'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://login-flow.octopustrack.shop/api/admin' }}
+            VITE_APP_MODE=tenant
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for CMS Docker image
+        id: meta_cms
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CMS }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push CMS frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.meta_cms.outputs.tags }}
+          labels: ${{ steps.meta_cms.outputs.labels }}
+          build-args: |
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://login-flow.octopustrack.shop/api/admin' }}
+            VITE_APP_MODE=cms
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Display image tags
+        run: |
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Image CMS: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CMS }}"
+          echo "Tags CMS: ${{ steps.meta_cms.outputs.tags }}"
+
+      - name: Notify Portainer
+        if: vars.PORTAINER_WEBHOOK_URL && github.ref_name == 'main'
+        run: |
+          echo "Notifying Portainer..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
+
+      - name: Notify Portainer Testing
+        if: vars.PORTAINER_WEBHOOK_URL_TESTING && github.ref_name == 'testing'
+        run: |
+          echo "Notifying Portainer testing..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_TESTING }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
+
+      - name: Notify Portainer Marinkovic
+        if: vars.PORTAINER_WEBHOOK_URL_MARINKOVIC && github.ref_name == 'marinkovic'
+        run: |
+          echo "Notifying Portainer marinkovic..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_MARINKOVIC }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
