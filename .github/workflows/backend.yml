@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - testing
+      - marinkovic
     paths:
       - 'backend/**'
       - 'docker-compose.yml'
@@ -79,6 +80,15 @@ jobs:
         run: |
           echo "Notifying Portainer testing..."
           curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_TESTING }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
+
+      - name: Notify Portainer Marinkovic
+        if: vars.PORTAINER_WEBHOOK_URL_MARINKOVIC && github.ref_name == 'marinkovic'
+        run: |
+          echo "Notifying Portainer marinkovic..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_MARINKOVIC }}" \
             -H "Content-Type: application/json" \
             -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
         continue-on-error: true
