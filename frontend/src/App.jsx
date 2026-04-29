@@ -154,7 +154,7 @@ export default function App() {
   };
 
   const handleViewPDF = (id) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'https://presupuestos.octopustrack.shop/api';
+    const API_URL = import.meta.env.VITE_API_URL || 'https://login-flow.octopustrack.shop/api';
     const url = `${API_URL}/budgets/${id}/pdf?token=${localStorage.getItem('token')}`; // Send token in query for browser viewing if needed, but standard auth header is better if using blob
     // Simplest for now: Open URL. Backend auth might block this if strict.
     // Ideally: Fetch blob with auth header -> Create Object URL -> Open.

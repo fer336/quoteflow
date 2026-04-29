@@ -7,6 +7,8 @@ on:
       - testing
     paths:
       - 'backend/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.portainer.yml'
       - '.github/workflows/backend.yml'
   release:
     types: [published]
@@ -64,10 +66,19 @@ jobs:
           echo "Tags: ${{ steps.meta.outputs.tags }}"
 
       - name: Notify Portainer
-        if: vars.PORTAINER_WEBHOOK_URL
+        if: vars.PORTAINER_WEBHOOK_URL && github.ref_name == 'main'
         run: |
           echo "Notifying Portainer..."
           curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
+
+      - name: Notify Portainer Testing
+        if: vars.PORTAINER_WEBHOOK_URL_TESTING && github.ref_name == 'testing'
+        run: |
+          echo "Notifying Portainer testing..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_TESTING }}" \
             -H "Content-Type: application/json" \
             -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
         continue-on-error: true

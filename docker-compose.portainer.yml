@@ -19,7 +19,7 @@ services:
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
       - GOOGLE_CLIENT_ID_FILE=/run/secrets/backend.env
-      - CORS_ORIGINS=https://presupuestos.octopustrack.shop,http://presupuestos.octopustrack.shop,https://cms-flow.octopustrack.shop,http://cms-flow.octopustrack.shop
+      - CORS_ORIGINS=https://login-flow.octopustrack.shop,http://login-flow.octopustrack.shop,https://cms-flow.octopustrack.shop,http://cms-flow.octopustrack.shop
     volumes:
       - budgetpro_static:/app/static
     deploy:
@@ -35,11 +35,11 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=network_public"
-        - "traefik.http.routers.quoteflow-api.rule=(Host(`presupuestos.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/api`)"
+        - "traefik.http.routers.quoteflow-api.rule=(Host(`login-flow.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/api`)"
         - "traefik.http.routers.quoteflow-api.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-api.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.quoteflow-backend.loadbalancer.server.port=8000"
-        - "traefik.http.routers.quoteflow-static.rule=(Host(`presupuestos.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/static`)"
+        - "traefik.http.routers.quoteflow-static.rule=(Host(`login-flow.octopustrack.shop`) || Host(`cms-flow.octopustrack.shop`)) && PathPrefix(`/static`)"
         - "traefik.http.routers.quoteflow-static.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-static.tls.certresolver=letsencryptresolver"
 
@@ -63,7 +63,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=network_public"
-        - "traefik.http.routers.quoteflow-frontend.rule=Host(`presupuestos.octopustrack.shop`)"
+        - "traefik.http.routers.quoteflow-frontend.rule=Host(`login-flow.octopustrack.shop`)"
         - "traefik.http.routers.quoteflow-frontend.entrypoints=websecure"
         - "traefik.http.routers.quoteflow-frontend.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.quoteflow-frontend.loadbalancer.server.port=80"

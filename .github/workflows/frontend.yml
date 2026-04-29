@@ -7,6 +7,8 @@ on:
       - testing
     paths:
       - 'frontend/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.portainer.yml'
       - '.github/workflows/frontend.yml'
   release:
     types: [published]
@@ -43,7 +45,7 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          VITE_API_URL: ${{ secrets.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+          VITE_API_URL: ${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
 
       - name: Set up Docker Buildx
@@ -76,9 +78,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
             VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
-            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://presupuestos.octopustrack.shop/api/admin' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://login-flow.octopustrack.shop/api/admin' }}
             VITE_APP_MODE=tenant
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -103,9 +105,9 @@ jobs:
           tags: ${{ steps.meta_cms.outputs.tags }}
           labels: ${{ steps.meta_cms.outputs.labels }}
           build-args: |
-            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://presupuestos.octopustrack.shop/api' }}
+            VITE_API_URL=${{ secrets.FRONTEND_VITE_API_URL || 'https://login-flow.octopustrack.shop/api' }}
             VITE_GOOGLE_CLIENT_ID=${{ secrets.FRONTEND_VITE_GOOGLE_CLIENT_ID || '1016270254180-5odhc9o98c2sqgpvpipku9urjthlrdob.apps.googleusercontent.com' }}
-            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://presupuestos.octopustrack.shop/api/admin' }}
+            VITE_ADMIN_API_URL=${{ secrets.FRONTEND_VITE_ADMIN_API_URL || 'https://login-flow.octopustrack.shop/api/admin' }}
             VITE_APP_MODE=cms
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -118,10 +120,19 @@ jobs:
           echo "Tags CMS: ${{ steps.meta_cms.outputs.tags }}"
 
       - name: Notify Portainer
-        if: vars.PORTAINER_WEBHOOK_URL
+        if: vars.PORTAINER_WEBHOOK_URL && github.ref_name == 'main'
         run: |
           echo "Notifying Portainer..."
           curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
+        continue-on-error: true
+
+      - name: Notify Portainer Testing
+        if: vars.PORTAINER_WEBHOOK_URL_TESTING && github.ref_name == 'testing'
+        run: |
+          echo "Notifying Portainer testing..."
+          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_TESTING }}" \
             -H "Content-Type: application/json" \
             -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
         continue-on-error: true

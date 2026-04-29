@@ -21,6 +21,11 @@
 - [/] Deployar CMS en producción en cms-flow.octopustrack.shop
 
 ## 🟢 Hecho
+- [x] Migrar dominio tenant a login-flow.octopustrack.shop en infra + frontend ✅ 2026-04-29
+- [x] Diagnosticar auto-redeploy en Portainer y separar webhooks main/testing ✅ 2026-04-29
+- [x] Centrar visualmente la fila de íconos de acciones en cards mobile del CMS ✅ 2026-04-29
+- [x] Ajustar acciones CMS a una sola fila con botones solo íconos ✅ 2026-04-29
+- [x] Rediseñar CMS mobile-first (bonito + práctico) ✅ 2026-04-29
 - [x] Preparar infraestructura de deploy CMS (imagen frontend-cms + Traefik + CORS multi-dominio) ✅ 2026-04-29
 - [x] 🐛 Corregir login principal para leer email/password aunque navegador autocompleta ✅ 2026-04-29
 - [x] Implementar onboarding sin contraseña desde CMS (seteo al ingresar con Google) ✅ 2026-04-29
