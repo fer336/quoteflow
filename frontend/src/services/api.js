@@ -135,6 +135,11 @@ export const companyService = {
     return response.data;
   },
 
+  deleteLogo: async () => {
+    const response = await api.delete('/company/logo');
+    return response.data;
+  },
+
   getLogo: async () => {
     const response = await api.get('/company/logo', {
       responseType: 'blob',

@@ -59,6 +59,17 @@ def get_file_content(file_name: str) -> bytes:
             response.release_conn()
 
 
+def delete_file(file_name: str) -> bool:
+    """Delete a file from MinIO."""
+    client = get_minio_client()
+    try:
+        client.remove_object(MINIO_BUCKET, file_name)
+        return True
+    except Exception as e:
+        print(f"Error deleting file from MinIO: {e}")
+        return False
+
+
 def get_file_content_with_metadata(file_name: str) -> tuple[bytes | None, str | None]:
     """Download file content and persisted content type."""
     client = get_minio_client()
