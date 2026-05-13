@@ -141,7 +141,17 @@ def _build_items_context(budget):
     for item in sorted_items:
         description = _clean_item_description(getattr(item, "description", None))
         if description:
-            items.append({"description": description})
+            amount = getattr(item, "amount", 0) or 0
+            items.append(
+                {
+                    "description": description,
+                    "amount": amount,
+                    "amount_formatted": _format_currency(amount),
+                    "quantity": 1,
+                    "subtotal": amount,
+                    "subtotal_formatted": _format_currency(amount),
+                }
+            )
 
     return items
 
@@ -174,6 +184,7 @@ def _build_context(budget, client_data=None):
             "validity": _safe_value(getattr(budget, "validity", None)),
             "status": status,
             "status_slug": status_slug,
+            "is_manual_total": getattr(budget, "is_manual_total", 0),
             "total": _format_currency(getattr(budget, "total", 0)),
             "document_letter": "X",
             "payment_terms": user_payment_terms,
@@ -188,7 +199,7 @@ def _build_context(budget, client_data=None):
         },
         "items": _build_items_context(budget),
         "footer": {
-            "note": "Se muestran exclusivamente los datos disponibles en el sistema. Los campos no informados se representan con '-'.",
+            "note": "Se muestran exclusivamente los datos disponibles en el sistema.",
         },
     }
 

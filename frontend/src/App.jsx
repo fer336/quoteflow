@@ -19,6 +19,7 @@ import ClientsManager from './components/ClientsManager';
 import SettingsModal from './components/SettingsModal';
 import LoginPage from './components/LoginPage';
 import MembershipExpiredPage from './components/MembershipExpiredPage';
+import DeleteConfirmModal from './components/DeleteConfirmModal';
 import { budgetService } from './services/api';
 import { useProductTour } from './tours/productTour';
 
@@ -32,6 +33,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [membershipExpired, setMembershipExpired] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, budget_id, client }
   
   // State for Editing
   const [editingBudget, setEditingBudget] = useState(null);
@@ -141,17 +143,23 @@ export default function App() {
     }
   };
 
-  const deleteBudget = async (id) => {
-    if (!confirm('¿Está seguro de eliminar este presupuesto?')) return;
-    
+  const requestDelete = (budget) => {
+    setDeleteTarget({ id: budget.id, budget_id: budget.budget_id, client: budget.client });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await budgetService.delete(id);
-      setBudgets(budgets.filter(b => b.id !== id));
+      await budgetService.delete(deleteTarget.id);
+      setBudgets(budgets.filter(b => b.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (err) {
       console.error('Error deleting budget:', err);
       alert('Error al eliminar el presupuesto');
     }
   };
+
+  const cancelDelete = () => setDeleteTarget(null);
 
   const handleViewPDF = (id) => {
     const API_URL = import.meta.env.VITE_API_URL || 'https://login-flow.octopustrack.shop/api';
@@ -394,7 +402,7 @@ export default function App() {
                   <Edit2 size={16} />
                 </button>
                 <button 
-                  onClick={() => deleteBudget(budget.id)}
+                  onClick={() => requestDelete(budget)}
                   className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                   title="Eliminar"
                 >
@@ -463,7 +471,7 @@ export default function App() {
                             <Edit2 size={16} />
                           </button>
                           <button 
-                            onClick={() => deleteBudget(budget.id)}
+                            onClick={() => requestDelete(budget)}
                             className="p-1.5 hover:bg-white rounded-full border border-transparent hover:border-slate-200 text-slate-400 hover:text-red-500 shadow-sm transition-all"
                             title="Eliminar"
                           >
@@ -489,6 +497,13 @@ export default function App() {
       />
       <ClientsManager isOpen={isClientsManagerOpen} onClose={() => setIsClientsManagerOpen(false)} />
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <DeleteConfirmModal
+        isOpen={deleteTarget !== null}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        budgetId={deleteTarget?.budget_id}
+        client={deleteTarget?.client}
+      />
     </div>
   );
 }

@@ -36,6 +36,22 @@ async def upload_logo(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.delete("/logo")
+async def delete_logo(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete company logo from MinIO and clear reference"""
+    if not current_user.logo_url:
+        raise HTTPException(status_code=404, detail="No hay logo para eliminar")
+
+    storage.delete_file(current_user.logo_url)
+    current_user.logo_url = None
+    db.commit()
+
+    return {"message": "Logo eliminado exitosamente"}
+
+
 @router.get("/logo")
 async def get_logo(current_user: User = Depends(get_current_user)):
     """Get current logo content"""

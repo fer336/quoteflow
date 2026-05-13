@@ -30,6 +30,7 @@ export default function SettingsModal({ isOpen, onClose }) {
   const [existingLogo, setExistingLogo] = useState(null);
   const [logoLoading, setLogoLoading] = useState(false);
   const [logoStatus, setLogoStatus] = useState(null);
+  const [deletingLogo, setDeletingLogo] = useState(false);
   const [companyData, setCompanyData] = useState({});
   const [companyLoading, setCompanyLoading] = useState(false);
   const [companySaving, setCompanySaving] = useState(false);
@@ -71,6 +72,7 @@ export default function SettingsModal({ isOpen, onClose }) {
       updateExistingLogo(null);
       setLogoStatus(null);
       setCompanyStatus(null);
+      setDeletingLogo(false);
       setActiveTab('logo');
       checkExistingLogo();
     }
@@ -134,6 +136,23 @@ export default function SettingsModal({ isOpen, onClose }) {
       setLogoStatus('error');
     } finally {
       setLogoLoading(false);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (deletingLogo) return;
+    try {
+      setDeletingLogo(true);
+      await companyService.deleteLogo();
+      revokeObjectUrl(existingLogo);
+      updateExistingLogo(null);
+      setLogoStatus('deleted');
+      setTimeout(() => setLogoStatus(null), 2000);
+    } catch (error) {
+      console.error('Error deleting logo:', error);
+      setLogoStatus('delete-error');
+    } finally {
+      setDeletingLogo(false);
     }
   };
 
@@ -230,6 +249,16 @@ export default function SettingsModal({ isOpen, onClose }) {
                       <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">Logo Actual</span>
                       <p className="text-xs text-slate-400 mt-2">Haz clic para cambiar</p>
                     </div>
+                    <div className="mt-3 text-center">
+                      <button
+                        type="button"
+                        onClick={handleDeleteLogo}
+                        disabled={deletingLogo}
+                        className="px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-all border border-red-200 disabled:opacity-50"
+                      >
+                        {deletingLogo ? 'Eliminando...' : 'Eliminar Logo'}
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -289,6 +318,18 @@ export default function SettingsModal({ isOpen, onClose }) {
             <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded-lg flex items-center gap-2 text-sm font-bold">
               <AlertCircle size={16} />
               Error al subir la imagen.
+            </div>
+          )}
+          {activeTab === 'logo' && logoStatus === 'deleted' && (
+            <div className="mb-4 p-3 bg-primary-50 text-primary-700 rounded-lg flex items-center gap-2 text-sm font-bold">
+              <CheckCircle2 size={16} />
+              Logo eliminado correctamente.
+            </div>
+          )}
+          {activeTab === 'logo' && logoStatus === 'delete-error' && (
+            <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded-lg flex items-center gap-2 text-sm font-bold">
+              <AlertCircle size={16} />
+              Error al eliminar el logo.
             </div>
           )}
           {activeTab === 'company' && companyStatus?.type === 'success' && (

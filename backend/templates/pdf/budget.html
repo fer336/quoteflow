@@ -1,84 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Presupuesto {{ budget.number }}</title>
-  </head>
-  <body>
-    <main class="document">
-      <header class="header-box">
-        <section class="brand-box">
-          <div class="brand-layout{% if company.logo_data_uri %} brand-layout--with-logo{% endif %}">
-            {% if company.logo_data_uri %}
-            <img src="{{ company.logo_data_uri }}" alt="Logo de la empresa" class="brand-logo-image" />
-            {% else %}
-            <div class="brand-logo-frame brand-logo-frame--placeholder">
-              <span>SIN LOGO</span>
-            </div>
-            {% endif %}
-            <div class="brand-name">{{ company.name|default('') }}</div>
-          </div>
-        </section>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <title>Presupuesto {{ budget.number }}</title>
+</head>
+<body>
+  {% macro safe_val(v) %}{{ v if v and v != '-' else '—' }}{% endmacro %}
+  <div class="page">
+    <div class="accent-bar"></div>
 
-      <section class="client-box">
-        <table class="client-table">
-          <tbody>
-            <tr>
-              <th>Cliente</th>
-              <td>{{ client.name }}</td>
-              <th>Tipo inmueble</th>
-              <td>{{ client.property_type }}</td>
-            </tr>
-            <tr>
-              <th>Dirección</th>
-              <td>{{ client.address }}</td>
-              <th>Teléfono</th>
-              <td>{{ client.phone }}</td>
-            </tr>
-            <tr>
-              <th>Email</th>
-              <td>{{ client.email }}</td>
-              <th>Validez</th>
-              <td>{{ budget.validity }}</td>
-            </tr>
-            <tr>
-              <th>Presupuesto</th>
-              <td>{{ budget.number }}</td>
-              <th>Fecha</th>
-              <td>{{ budget.date }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="items-box">
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>DESCRIPCION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in items %}
-            {% if item.description|trim %}
-            <tr>
-              <td>{{ item.description }}</td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-          </tbody>
-        </table>
-        <div class="items-spacer" aria-hidden="true"></div>
-      </section>
-
-      <section class="summary-strip summary-strip--total-only">
-        <div class="summary-total">
-          <div class="totals-label">Total</div>
-          <div class="totals-value">{{ budget.total }}</div>
+    <div class="header{% if not company.logo_data_uri %} header--centered{% endif %}">
+      {% if company.logo_data_uri %}
+      <div class="brand">
+        <img src="{{ company.logo_data_uri }}" alt="Logo" />
+      </div>
+      {% endif %}
+      <div class="doc-info">
+        <div class="doc-label">Presupuesto</div>
+        <div class="doc-number">{{ budget.number }}</div>
+        <div class="doc-dates">
+          <div class="doc-date-row">Fecha: <strong>{{ budget.date }}</strong></div>
+          <div class="doc-date-row">Validez: <strong>{{ budget.validity }}</strong></div>
         </div>
-      </section>
-    </main>
-  </body>
+      </div>
+    </div>
+
+    {% set c = client %}
+    {% set has_client = c.name and c.name not in ('-', '—', '') %}
+    {% if has_client %}
+    <div class="parties">
+      <div class="party-block">
+        <div class="party-name">{{ c.name }}</div>
+        {% if c.property_type and c.property_type not in ('-', '—') %}
+        <div class="party-row">Tipo inmueble: <span>{{ c.property_type }}</span></div>
+        {% endif %}
+        {% if c.address and c.address not in ('-', '—') %}
+        <div class="party-row">Dirección: <span>{{ c.address }}</span></div>
+        {% endif %}
+        {% if c.phone and c.phone not in ('-', '—') %}
+        <div class="party-row">Teléfono: <span>{{ c.phone }}</span></div>
+        {% endif %}
+        {% if c.email and c.email not in ('-', '—') %}
+        <div class="party-row">Email: <span>{{ c.email }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {% if budget.is_manual_total %}
+            <th>Descripción</th>
+            {% else %}
+            <th style="width:60%">Descripción</th>
+            <th class="right" style="width:40%">Total</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            {% if budget.is_manual_total %}
+            <td class="desc">{{ item.description }}</td>
+            {% else %}
+            <td class="desc">{{ item.description }}</td>
+            <td class="right">{{ item.amount_formatted }}</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals-section">
+      <div class="totals-table">
+        <div class="totals-row total-final">
+          <span class="t-label">Total</span>
+          <span class="t-value">{{ budget.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-note">{{ footer.note }}</div>
+      <div>
+        <div class="footer-validity-label">Válido por</div>
+        <div class="footer-validity-value">{{ budget.validity }}</div>
+      </div>
+    </div>
+  </div>
+</body>
 </html>
