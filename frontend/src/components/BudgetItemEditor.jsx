@@ -21,6 +21,14 @@ const ARS = (n) =>
 
 const hasVal = (v) => v !== '' && v !== undefined && v !== null;
 
+const borderClass = (v) =>
+  hasVal(v) ? 'border-slate-300' : 'border-slate-200';
+
+const floatClass = (v) =>
+  hasVal(v)
+    ? '-translate-y-2 text-[10px] text-slate-400 top-1'
+    : 'top-3 text-sm text-slate-400';
+
 // ── Helpers ──
 
 function computeAmount(item) {
@@ -141,8 +149,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
   }, [sheetItem]);
 
   const canSaveSheet =
-    sheetItem.description.trim() !== '' &&
-    (!isManualMode || sheetItem.show_price);
+    sheetItem.description.trim() !== '';
 
   const saveSheetItem = () => {
     if (!canSaveSheet) return;
@@ -270,7 +277,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                   <div className="flex items-center gap-1 mt-2">
                     <button
                       type="button"
-                      onClick={() => updateItem(item.id, 'show_quantity', !item.show_quantity)}
+                      onClick={() => toggleField(item.id, 'show_quantity')}
                       className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-all ${
                         item.show_quantity
                           ? 'bg-blue-100 text-blue-700'
@@ -281,7 +288,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                     </button>
                     <button
                       type="button"
-                      onClick={() => updateItem(item.id, 'show_price', !item.show_price)}
+                      onClick={() => toggleField(item.id, 'show_price')}
                       className={`text-[10px] px-2 py-0.5 rounded-full font-semibold transition-all ${
                         item.show_price
                           ? 'bg-green-100 text-green-700'
@@ -350,19 +357,11 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase">Descripción</th>
-                {!isManualMode && (
-                  <>
-                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-16 text-center">Cant.</th>
-                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-24 text-right">P. Unitario</th>
-                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-24 text-right">Subtotal</th>
-                  </>
-                )}
-                {!isManualMode && (
-                  <th className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase w-14 text-center">#</th>
-                )}
-                {!isManualMode && (
-                  <th className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase w-14 text-center">$</th>
-                )}
+                <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-16 text-center">Cant.</th>
+                <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-24 text-right">P. Unitario</th>
+                <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-24 text-right">Subtotal</th>
+                <th className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase w-14 text-center">#</th>
+                <th className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase w-14 text-center">$</th>
                 <th className="px-2 py-2 text-[10px] font-bold text-slate-400 uppercase w-14 text-center">🚫</th>
                 <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase w-20 text-center">Orden</th>
                 <th className="px-4 py-2 w-24"></th>
@@ -371,7 +370,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
             <tbody className="divide-y divide-slate-100">
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={isManualMode ? 3 : 10} className="px-4 py-10 text-center text-sm text-slate-400">
+                  <td colSpan={9} className="px-4 py-10 text-center text-sm text-slate-400">
                     No hay renglones. Agregá el primero.
                   </td>
                 </tr>
@@ -394,8 +393,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                         }
                       />
                     </td>
-                    {!isManualMode && (
-                      <>
+                    <>
                         <td className="px-4 py-2 text-center">
                           {item.show_quantity ? (
                             <input
@@ -457,30 +455,25 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                               : ARS(computeAmount(item))}
                           </span>
                         </td>
-                      </>
-                    )}
-                    {!isManualMode && (
-                      <td className="px-2 py-2 text-center">
-                        <ToggleBtn
-                          active={item.show_quantity}
-                          onClick={() => toggleField(item.id, 'show_quantity')}
-                          icon={Hash}
-                          activeColor="bg-blue-100 text-blue-700"
-                          title="Mostrar / ocultar cantidad"
-                        />
-                      </td>
-                    )}
-                    {!isManualMode && (
-                      <td className="px-2 py-2 text-center">
-                        <ToggleBtn
-                          active={item.show_price}
-                          onClick={() => toggleField(item.id, 'show_price')}
-                          icon={DollarSign}
-                          activeColor="bg-green-100 text-green-700"
-                          title="Mostrar / ocultar precio"
-                        />
-                      </td>
-                    )}
+                    </>
+                    <td className="px-2 py-2 text-center">
+                      <ToggleBtn
+                        active={item.show_quantity}
+                        onClick={() => toggleField(item.id, 'show_quantity')}
+                        icon={Hash}
+                        activeColor="bg-blue-100 text-blue-700"
+                        title="Mostrar / ocultar cantidad"
+                      />
+                    </td>
+                    <td className="px-2 py-2 text-center">
+                      <ToggleBtn
+                        active={item.show_price}
+                        onClick={() => toggleField(item.id, 'show_price')}
+                        icon={DollarSign}
+                        activeColor="bg-green-100 text-green-700"
+                        title="Mostrar / ocultar precio"
+                      />
+                    </td>
                     <td className="px-2 py-2 text-center">
                       <ToggleBtn
                         active={item.is_excluded}
@@ -683,7 +676,7 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
               </div>
 
               {/* Subtotal */}
-              {!isManualMode && (sheetItem.show_price || sheetItem.show_quantity) && (
+              {(sheetItem.show_price || sheetItem.show_quantity) && (
                 <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
                   <span className="text-sm font-medium text-slate-500">Subtotal</span>
                   <span className="text-base font-bold text-slate-800">
