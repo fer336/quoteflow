@@ -587,7 +587,6 @@ export default function BudgetItemEditor({ items, onItemsChange, isManualMode })
                   type="text"
                   id="sheet-desc"
                   placeholder=" "
-                  autoFocus
                   className={`peer w-full h-12 px-4 pt-4 pb-1 text-sm border rounded-xl outline-none transition-all focus:border-2 bg-transparent ${borderClass(sheetItem.description)}`}
                   value={sheetItem.description}
                   onChange={(e) => updateSheetField('description', e.target.value)}
