@@ -13,6 +13,9 @@ class BudgetItem:
     description: str
     amount: float
     order_index: int = 0
+    quantity: float | None = None
+    unit_price: float | None = None
+    is_excluded: bool = False
 
 
 @dataclass(slots=True)

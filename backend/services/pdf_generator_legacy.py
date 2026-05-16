@@ -265,6 +265,58 @@ def create_budget_pdf_legacy(budget, client_data=None):
         alignment=2,
         textColor=TEXT_COLOR,
     )
+    excluded_title_style = ParagraphStyle(
+        "ExcludedTitle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor("#dc2626"),
+    )
+    excluded_item_style = ParagraphStyle(
+        "ExcludedItem",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#dc2626"),
+    )
+    qty_header_style = ParagraphStyle(
+        "QtyHeader",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=13,
+        alignment=2,
+        textColor=WHITE_COLOR,
+    )
+    qty_style = ParagraphStyle(
+        "Qty",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=13,
+        alignment=2,
+        textColor=TEXT_COLOR,
+    )
+    unit_price_header_style = ParagraphStyle(
+        "UnitPriceHeader",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=13,
+        alignment=2,
+        textColor=WHITE_COLOR,
+    )
+    unit_price_style = ParagraphStyle(
+        "UnitPrice",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=13,
+        alignment=2,
+        textColor=TEXT_COLOR,
+    )
 
     logo = _build_logo(budget)
 
@@ -401,26 +453,38 @@ def create_budget_pdf_legacy(budget, client_data=None):
     story.append(info_table)
     story.append(Spacer(1, 0.45 * cm))
 
-    item_rows = [
-        [
-            Paragraph("ÍTEM", header_style),
-            Paragraph("DESCRIPCIÓN", header_style),
-            Paragraph("SUBTOTAL", header_style),
-        ]
-    ]
-
     sorted_items = sorted(
         getattr(budget, "items", []) or [],
         key=lambda item: (getattr(item, "order_index", 0), getattr(item, "id", 0)),
     )
 
-    for index, item in enumerate(sorted_items, start=1):
+    included_items = [i for i in sorted_items if not getattr(i, "is_excluded", False)]
+    excluded_items = [i for i in sorted_items if getattr(i, "is_excluded", False)]
+
+    # ── Included items table ──
+    item_rows = [
+        [
+            Paragraph("ÍTEM", header_style),
+            Paragraph("DESCRIPCIÓN", header_style),
+            Paragraph("CANT.", qty_header_style),
+            Paragraph("P. UNIT.", unit_price_header_style),
+            Paragraph("SUBTOTAL", header_style),
+        ]
+    ]
+
+    for index, item in enumerate(included_items, start=1):
         description = escape(_safe_value(getattr(item, "description", None)))
         amount = getattr(item, "amount", 0) or 0
+        quantity = getattr(item, "quantity", None)
+        unit_price = getattr(item, "unit_price", None)
+        qty_text = str(quantity) if quantity is not None else "-"
+        price_text = _format_currency(unit_price) if unit_price is not None else "-"
         item_rows.append(
             [
                 Paragraph(str(index), item_style),
                 Paragraph(description, item_style),
+                Paragraph(qty_text, qty_style),
+                Paragraph(price_text, unit_price_style),
                 Paragraph(_format_currency(amount), item_style),
             ]
         )
@@ -430,11 +494,13 @@ def create_budget_pdf_legacy(budget, client_data=None):
             [
                 Paragraph("-", item_style),
                 Paragraph("-", item_style),
+                Paragraph("-", qty_style),
+                Paragraph("-", unit_price_style),
                 Paragraph("-", item_style),
             ]
         )
 
-    items_table = Table(item_rows, colWidths=[2.0 * cm, 10.9 * cm, 4.1 * cm])
+    items_table = Table(item_rows, colWidths=[1.6 * cm, 9.0 * cm, 1.8 * cm, 2.4 * cm, 2.2 * cm])
     items_table.setStyle(
         TableStyle(
             [
@@ -443,19 +509,58 @@ def create_budget_pdf_legacy(budget, client_data=None):
                 ("INNERGRID", (0, 0), (-1, -1), 0.6, BORDER_COLOR),
                 ("BACKGROUND", (0, 1), (-1, -1), SURFACE_COLOR),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 10),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                 ("TOPPADDING", (0, 0), (-1, 0), 9),
                 ("BOTTOMPADDING", (0, 0), (-1, 0), 9),
-                ("TOPPADDING", (0, 1), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
+                ("TOPPADDING", (0, 1), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
                 ("ALIGN", (0, 1), (0, -1), "CENTER"),
-                ("ALIGN", (2, 1), (2, -1), "RIGHT"),
+                ("ALIGN", (2, 1), (4, -1), "RIGHT"),
             ]
         )
     )
     story.append(items_table)
     story.append(Spacer(1, 0.5 * cm))
+
+    # ── Excluded items section ──
+    if excluded_items:
+        excluded_header = Table(
+            [[Paragraph("LO QUE NO INCLUYE EL PRESUPUESTO", excluded_title_style)]],
+            colWidths=[17.0 * cm],
+        )
+        excluded_header.setStyle(TableStyle([
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("LINEBELOW", (0, 0), (-1, 0), 0.6, colors.HexColor("#fecaca")),
+        ]))
+        story.append(excluded_header)
+
+        excluded_rows = []
+        for item in excluded_items:
+            description = escape(_safe_value(getattr(item, "description", None)))
+            quantity = getattr(item, "quantity", None)
+            unit_price = getattr(item, "unit_price", None)
+            parts = [description]
+            if quantity is not None:
+                parts.append(f" (x{quantity})")
+            if unit_price is not None:
+                parts.append(f" — {_format_currency(unit_price)}/u.")
+            excluded_text = "".join(parts)
+            excluded_rows.append([Paragraph(excluded_text, excluded_item_style)])
+
+        excluded_table = Table(excluded_rows, colWidths=[17.0 * cm])
+        excluded_table.setStyle(TableStyle([
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.HexColor("#fee2e2")),
+        ]))
+        story.append(excluded_table)
+        story.append(Spacer(1, 0.3 * cm))
 
     total_table = Table(
         [

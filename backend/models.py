@@ -109,6 +109,9 @@ class BudgetItem(Base):
     description = Column(String, nullable=False)
     amount = Column(Float, default=0.0)
     order_index = Column(Integer, default=0)
+    quantity = Column(Float, nullable=True)
+    unit_price = Column(Float, nullable=True)
+    is_excluded = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationship

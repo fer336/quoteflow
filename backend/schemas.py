@@ -86,6 +86,9 @@ class BudgetItemBase(BaseModel):
     description: str
     amount: float = 0.0
     order_index: int = 0
+    quantity: Optional[float] = None
+    unit_price: Optional[float] = None
+    is_excluded: bool = False
 
 
 class BudgetItemCreate(BudgetItemBase):

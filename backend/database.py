@@ -64,6 +64,22 @@ def ensure_legacy_schema_compatibility():
         except Exception as e:
             print(f"Warning: No se pudo agregar columna tipo_inmueble: {e}")
 
+    if "budget_items" in table_names:
+        item_columns = {column["name"] for column in inspector.get_columns("budget_items")}
+        budget_item_cols_sql = {
+            "quantity": "ALTER TABLE budget_items ADD COLUMN quantity FLOAT",
+            "unit_price": "ALTER TABLE budget_items ADD COLUMN unit_price FLOAT",
+            "is_excluded": "ALTER TABLE budget_items ADD COLUMN is_excluded BOOLEAN DEFAULT FALSE",
+        }
+        for column_name, ddl in budget_item_cols_sql.items():
+            if column_name not in item_columns:
+                try:
+                    with engine.begin() as connection:
+                        connection.execute(text(ddl))
+                    print(f"INFO: Columna budget_items.{column_name} agregada automáticamente.")
+                except Exception as e:
+                    print(f"Warning: No se pudo agregar columna budget_items.{column_name}: {e}")
+
     # Verificar que las columnas de branding existan (solo informational)
     if "users" in table_names:
         user_columns = {column["name"] for column in inspector.get_columns("users")}

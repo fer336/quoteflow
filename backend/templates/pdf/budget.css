@@ -111,6 +111,28 @@ tbody td.right { text-align: right; font-variant-numeric: tabular-nums; font-wei
 .totals-row.total-final .t-label { color: rgba(255,255,255,0.8); font-weight: 600; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
 .totals-row.total-final .t-value { color: #fff; font-size: 17px; font-weight: 700; }
 
+/* EXCLUDED ITEMS */
+.excluded-section {
+  padding: 12px 48px 8px;
+  margin-top: 16px;
+}
+.excluded-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: #dc2626; margin-bottom: 8px; padding-bottom: 4px;
+  border-bottom: 1px solid #fecaca;
+}
+.excluded-table { width: 100%; border-collapse: collapse; }
+.excluded-table tbody td {
+  padding: 4px 8px; font-size: 11px; color: #dc2626;
+  border-bottom: 1px solid #fee2e2; vertical-align: middle;
+}
+.excluded-desc { font-weight: 500; }
+.excluded-qty, .excluded-price { text-align: right; font-variant-numeric: tabular-nums; }
+.excluded-table .muted { color: #fca5a5; }
+
+/* MUTED helper */
+.muted { color: #9ca3af; }
+
 /* FOOTER */
 .footer {
   padding: 20px 48px 32px;

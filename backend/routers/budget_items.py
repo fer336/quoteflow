@@ -53,15 +53,27 @@ def add_item_to_budget(
         description=item.description,
         amount=item.amount,
         order_index=max_order,
+        quantity=getattr(item, "quantity", None),
+        unit_price=getattr(item, "unit_price", None),
+        is_excluded=getattr(item, "is_excluded", False),
     )
 
     db.add(db_item)
 
-    # Recalculate total if not manual
+    # Recalculate total if not manual (exclude excluded items)
     is_manual_total = cast(int, budget.is_manual_total)
     if is_manual_total == 0:
-        items = db.query(BudgetItem).filter(BudgetItem.budget_db_id == budget_id).all()
-        setattr(budget, "total", float(sum(i.amount for i in items) + item.amount))
+        existing_items = (
+            db.query(BudgetItem)
+            .filter(
+                BudgetItem.budget_db_id == budget_id,
+                BudgetItem.is_excluded == False,
+            )
+            .all()
+        )
+        existing_total = sum(i.amount for i in existing_items)
+        new_amount = item.amount if not item.is_excluded else 0
+        setattr(budget, "total", float(existing_total + new_amount))
 
     db.commit()
     db.refresh(db_item)
@@ -107,13 +119,14 @@ def delete_budget_item(
             .filter(
                 BudgetItem.budget_db_id == budget.id,
                 BudgetItem.id != item.id,
+                BudgetItem.is_excluded == False,
             )
             .all()
         )
 
     db.delete(item)
 
-    # Recalculate total if not manual
+    # Recalculate total if not manual (only non-excluded items)
     if is_manual_total == 0:
         setattr(budget, "total", float(sum(i.amount for i in remaining_items)))
 

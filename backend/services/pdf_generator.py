@@ -137,23 +137,49 @@ def _build_items_context(budget):
         key=lambda item: (getattr(item, "order_index", 0), getattr(item, "id", 0)),
     )
 
-    items = []
+    included = []
+    excluded = []
     for item in sorted_items:
         description = _clean_item_description(getattr(item, "description", None))
-        if description:
-            amount = getattr(item, "amount", 0) or 0
-            items.append(
-                {
-                    "description": description,
-                    "amount": amount,
-                    "amount_formatted": _format_currency(amount),
-                    "quantity": 1,
-                    "subtotal": amount,
-                    "subtotal_formatted": _format_currency(amount),
-                }
-            )
+        if not description:
+            continue
 
-    return items
+        amount = getattr(item, "amount", 0) or 0
+        quantity = getattr(item, "quantity", None)
+        unit_price = getattr(item, "unit_price", None)
+        is_excluded = getattr(item, "is_excluded", False)
+
+        entry = {
+            "description": description,
+            "amount": amount,
+            "amount_formatted": _format_currency(amount),
+            "quantity": quantity,
+            "unit_price": unit_price,
+            "unit_price_formatted": _format_currency(unit_price) if unit_price else None,
+            "has_quantity": quantity is not None,
+            "has_unit_price": unit_price is not None,
+            "is_excluded": is_excluded,
+        }
+
+        if is_excluded:
+            excluded.append(entry)
+        else:
+            # Compute subtotal display
+            if quantity is not None and unit_price is not None:
+                entry["subtotal"] = quantity * unit_price
+                entry["subtotal_formatted"] = _format_currency(quantity * unit_price)
+                entry["show_qty_price"] = True
+            elif unit_price is not None:
+                entry["subtotal"] = unit_price
+                entry["subtotal_formatted"] = _format_currency(unit_price)
+                entry["show_qty_price"] = False
+            else:
+                entry["subtotal"] = 0
+                entry["subtotal_formatted"] = _format_currency(0)
+                entry["show_qty_price"] = False
+            included.append(entry)
+
+    return included, excluded
 
 
 def _build_context(budget, client_data=None):
@@ -163,6 +189,8 @@ def _build_context(budget, client_data=None):
 
     # Payment terms del branding del usuario o default
     user_payment_terms = _safe_value(getattr(user, "payment_terms", None), "-")
+
+    included_items, excluded_items = _build_items_context(budget)
 
     return {
         "company": {
@@ -197,7 +225,8 @@ def _build_context(budget, client_data=None):
             "email": _safe_value(getattr(client_data, "email", None)),
             "phone": _safe_value(getattr(client_data, "phone", None)),
         },
-        "items": _build_items_context(budget),
+        "items": included_items,
+        "excluded_items": excluded_items,
         "footer": {
             "note": "Se muestran exclusivamente los datos disponibles en el sistema.",
         },

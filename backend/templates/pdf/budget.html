@@ -54,8 +54,10 @@
             {% if budget.is_manual_total %}
             <th>Descripción</th>
             {% else %}
-            <th style="width:60%">Descripción</th>
-            <th class="right" style="width:40%">Total</th>
+            <th style="width:45%">Descripción</th>
+            <th class="right" style="width:12%">Cant.</th>
+            <th class="right" style="width:18%">P. Unitario</th>
+            <th class="right" style="width:25%">Total</th>
             {% endif %}
           </tr>
         </thead>
@@ -66,6 +68,20 @@
             <td class="desc">{{ item.description }}</td>
             {% else %}
             <td class="desc">{{ item.description }}</td>
+            <td class="right">
+              {% if item.has_quantity %}
+              {{ item.quantity }}
+              {% else %}
+              <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td class="right">
+              {% if item.has_unit_price %}
+              {{ item.unit_price_formatted }}
+              {% else %}
+              <span class="muted">—</span>
+              {% endif %}
+            </td>
             <td class="right">{{ item.amount_formatted }}</td>
             {% endif %}
           </tr>
@@ -73,6 +89,33 @@
         </tbody>
       </table>
     </div>
+
+    {% if excluded_items %}
+    <div class="excluded-section">
+      <h4 class="excluded-title">Lo que no incluye el presupuesto</h4>
+      <table class="excluded-table">
+        <tbody>
+          {% for item in excluded_items %}
+          <tr>
+            <td class="excluded-desc">{{ item.description }}</td>
+            {% if not budget.is_manual_total %}
+            <td class="excluded-qty">
+              {% if item.has_quantity %}
+              {{ item.quantity }}
+              {% endif %}
+            </td>
+            <td class="excluded-price">
+              {% if item.has_unit_price %}
+              {{ item.unit_price_formatted }}
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
 
     <div class="totals-section">
       <div class="totals-table">

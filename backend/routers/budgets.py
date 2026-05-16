@@ -42,8 +42,10 @@ def create_budget(
     # Generate budget ID unique for this user
     budget_id = generate_budget_id(db, current_user.id)
 
-    # Calculate total if not manual
-    calculated_total = sum(item.amount for item in budget.items)
+    # Calculate total if not manual (exclude is_excluded items)
+    calculated_total = sum(
+        item.amount for item in budget.items if not getattr(item, "is_excluded", False)
+    )
     final_total = budget.total if budget.is_manual_total else calculated_total
 
     # Create budget
@@ -69,6 +71,9 @@ def create_budget(
             description=item.description,
             amount=item.amount,
             order_index=index,
+            quantity=getattr(item, "quantity", None),
+            unit_price=getattr(item, "unit_price", None),
+            is_excluded=getattr(item, "is_excluded", False),
         )
         db.add(db_item)
 
@@ -160,20 +165,32 @@ def update_budget(
         db.flush()
 
         for index, item in enumerate(items_data):
+            is_excluded = item.get("is_excluded", False)
             db_budget.items.append(
                 BudgetItem(
                     description=item["description"],
                     amount=item["amount"],
                     order_index=item.get("order_index", index),
+                    quantity=item.get("quantity"),
+                    unit_price=item.get("unit_price"),
+                    is_excluded=is_excluded,
                 )
             )
 
     manual_mode = update_data.get("is_manual_total", db_budget.is_manual_total)
     if not manual_mode:
         if items_data is not None:
-            update_data["total"] = sum(item["amount"] for item in items_data)
+            update_data["total"] = sum(
+                item["amount"]
+                for item in items_data
+                if not item.get("is_excluded", False)
+            )
         elif "total" not in update_data:
-            update_data["total"] = sum(item.amount for item in db_budget.items)
+            update_data["total"] = sum(
+                item.amount
+                for item in db_budget.items
+                if not item.is_excluded
+            )
 
     for field, value in update_data.items():
         setattr(db_budget, field, value)
