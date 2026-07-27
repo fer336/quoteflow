@@ -210,7 +210,8 @@ export default function SettingsModal({ isOpen, onClose }) {
   const logoPreviewSrc = preview || existingLogo;
   const pdfFontSize = Number(companyData.pdf_font_size) || DEFAULT_PDF_FONT_SIZE;
   const pdfDescriptionFontSize = Number(companyData.pdf_description_font_size) || DEFAULT_PDF_DESCRIPTION_FONT_SIZE;
-  const logoPreviewWidth = `${Math.min(45, (logoSize / 794) * 100)}%`;
+  const logoPreviewWidthPercent = Math.min(45, (logoSize / 794) * 100);
+  const logoPreviewWidth = `${logoPreviewWidthPercent}%`;
   const handleSaveActiveSettings = activeTab === 'pdf' ? handleSavePdf : handleSaveCompany;
   const saveButtonLabel = activeTab === 'pdf' ? 'Guardar PDF' : 'Guardar Empresa';
 
@@ -357,32 +358,28 @@ export default function SettingsModal({ isOpen, onClose }) {
                   </div>
                   <div className="rounded-xl bg-slate-100 p-3">
                     <div className="mx-auto w-full max-w-[560px] rounded-lg bg-white p-4 shadow-sm sm:p-5">
-                      <div className="h-1.5 rounded-full bg-primary-600"></div>
-                      <div className="mt-4 flex min-h-[108px] items-start justify-between gap-4 sm:gap-6">
-                        <div className="flex min-h-20 flex-1 items-start">
+                      <div className={`flex min-h-[118px] ${logoPreviewSrc ? 'items-start justify-between gap-5 sm:gap-8' : 'items-center justify-center text-center'}`}>
+                        {logoPreviewSrc && <div className="min-w-0 flex-1">
                           {logoPreviewSrc ? (
                             <img
                               src={logoPreviewSrc}
                               alt="Vista preliminar del logo en PDF"
-                              className="max-h-24 object-contain object-left"
+                              className="mb-3 max-h-20 object-contain object-left"
                               style={{ width: logoPreviewWidth, minWidth: '34px' }}
                             />
-                          ) : (
-                            <div className="flex h-14 w-28 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-400 sm:w-36">
-                              Sin logo
-                            </div>
-                          )}
+                          ) : null}
+                          <p className="truncate text-lg font-black leading-tight text-slate-950">Mi Empresa</p>
+                          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.18em] text-primary-600">Servicios profesionales</p>
+                          <p className="mt-3 text-[10px] leading-relaxed text-slate-500">11 2345 6789<br />contacto@empresa.com<br />Buenos Aires</p>
+                        </div>}
+                        <div className={`shrink-0 ${logoPreviewSrc ? 'text-right' : 'text-center'}`}>
+                          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-primary-600 sm:text-[10px]">Presupuesto</p>
+                          <div className={`mt-2 flex items-center gap-2 ${logoPreviewSrc ? 'justify-end' : 'justify-center'}`}>
+                            {logoPreviewSrc && <span className="h-8 w-px bg-primary-600" />}
+                            <p className="text-2xl font-black leading-none text-slate-950 sm:text-3xl">PR-001</p>
+                          </div>
+                          <p className="mt-4 text-[10px] text-slate-400 sm:text-xs">Fecha <span className="font-semibold text-slate-700">10/06/2026</span></p>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-primary-600 sm:text-[10px]">Presupuesto</p>
-                          <p className="mt-1 text-lg font-black text-slate-900 sm:text-xl">PR-001</p>
-                          <p className="mt-2 text-[10px] text-slate-400 sm:text-xs">Fecha: <span className="font-semibold text-slate-600">10/6/2026</span></p>
-                        </div>
-                      </div>
-                      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-[9px] text-slate-400 sm:text-[10px]">
-                        <span>Cliente</span>
-                        <span>Validez</span>
-                        <span className="text-right">Total</span>
                       </div>
                     </div>
                   </div>
@@ -486,65 +483,65 @@ export default function SettingsModal({ isOpen, onClose }) {
 
                 <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                    Vista preliminar de la tabla
+                    Vista preliminar del PDF
                   </div>
-                  <div className="overflow-hidden rounded-lg border border-slate-200">
-                    <div className="hidden sm:block">
-                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
-                        <span>Descripción</span>
-                        <span className="text-right">Cant.</span>
-                        <span className="text-right">P. Unitario</span>
-                        <span className="text-right">Total</span>
+                  <div className="overflow-hidden rounded-xl bg-slate-100 p-3">
+                    <div className="mx-auto flex aspect-[210/297] w-full max-w-[420px] flex-col overflow-hidden rounded-lg bg-white p-4 shadow-sm sm:p-5">
+                      <div className={`flex ${logoPreviewSrc ? 'justify-between gap-5' : 'justify-center text-center'}`}>
+                        {logoPreviewSrc && <div className="min-w-0 flex-1">
+                          <img
+                            src={logoPreviewSrc}
+                            alt="Vista preliminar del logo en PDF"
+                            className="mb-2 max-h-8 object-contain object-left"
+                            style={{ width: `${Math.max(18, logoPreviewWidthPercent * 0.45)}%`, minWidth: '28px' }}
+                          />
+                          <p className="truncate text-base font-black leading-tight text-slate-950">Mi Empresa</p>
+                          <p className="mt-1 text-[8px] font-black uppercase tracking-[0.18em] text-primary-600">Contacto</p>
+                        </div>}
+                        <div className={`shrink-0 ${logoPreviewSrc ? 'text-right' : 'text-center'}`}>
+                          <p className="text-[8px] font-black uppercase tracking-[0.22em] text-primary-600">Presupuesto</p>
+                          <div className={`mt-1 flex items-center gap-2 ${logoPreviewSrc ? 'justify-end' : 'justify-center'}`}>
+                            {logoPreviewSrc && <span className="h-7 w-px bg-primary-600" />}
+                            <p className="text-xl font-black leading-none text-slate-950">PR-001</p>
+                          </div>
+                          <p className="mt-2 text-[9px] text-slate-500">Fecha</p>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] items-center gap-0 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
-                        <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                          Reparación y mantenimiento general con materiales incluidos
-                        </span>
-                        <span className="text-right font-semibold">2</span>
-                        <span className="text-right font-semibold">$45.000,00</span>
-                        <span className="text-right font-semibold">$90.000,00</span>
-                      </div>
-                      <div className="grid grid-cols-[minmax(0,1fr)_3.5rem_5.8rem_5.8rem] items-center bg-slate-50 px-3 py-3 text-slate-600" style={{ fontSize: `${pdfFontSize}px` }}>
-                        <span className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                          Mano de obra especializada
-                        </span>
-                        <span className="text-right font-semibold">1</span>
-                        <span className="text-right font-semibold">$30.000,00</span>
-                        <span className="text-right font-semibold">$30.000,00</span>
-                      </div>
-                    </div>
 
-                    <div className="sm:hidden">
-                      <div className="bg-primary-600 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-white">
-                        Tabla del PDF
+                       <div className="mt-5 bg-white">
+                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-primary-600">Cliente</p>
+                        <p className="mt-1 text-sm font-black text-slate-950">Nombre del cliente</p>
                       </div>
-                      <div className="space-y-3 px-3 py-3">
-                        <div className="rounded-lg border border-slate-100 bg-white p-3 shadow-sm" style={{ fontSize: `${pdfFontSize}px` }}>
-                          <p className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                            Reparación y mantenimiento general con materiales incluidos
-                          </p>
-                          <div className="mt-3 grid grid-cols-3 gap-2 text-slate-600">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wide text-slate-400">Cant.</p>
-                              <p className="font-semibold">2</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wide text-slate-400">P. Unit.</p>
-                              <p className="font-semibold">$45.000</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] uppercase tracking-wide text-slate-400">Total</p>
-                              <p className="font-semibold">$90.000</p>
-                            </div>
+
+                      <div className="mt-5">
+                        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-primary-600">Descripción</p>
+                        <div className="mt-1 h-px bg-primary-600/50" />
+                        <div className="mt-3 space-y-2">
+                          <div className="flex gap-3 rounded-xl border border-slate-200 p-3" style={{ fontSize: `${pdfFontSize}px` }}>
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-[9px] font-black text-white">01</span>
+                             <span className="uppercase leading-snug text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>Trabajo de ejemplo</span>
+                          </div>
+                          <div className="flex gap-3 rounded-xl border border-slate-200 p-3" style={{ fontSize: `${pdfFontSize}px` }}>
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-600 text-[9px] font-black text-white">02</span>
+                             <span className="uppercase leading-snug text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>Segundo trabajo</span>
                           </div>
                         </div>
-                        <div className="rounded-lg bg-slate-50 p-3" style={{ fontSize: `${pdfFontSize}px` }}>
-                          <p className="font-bold uppercase leading-tight text-slate-900" style={{ fontSize: `${pdfDescriptionFontSize}px` }}>
-                            Mano de obra especializada
-                          </p>
-                          <div className="mt-3 flex items-center justify-between text-slate-600">
-                            <span className="font-semibold">1 x $30.000</span>
-                            <span className="font-semibold">$30.000</span>
+                      </div>
+
+                      <div className="mt-auto pt-5">
+                        <div className="flex items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2">
+                          <p className="shrink-0 text-[8px] font-black uppercase tracking-[0.18em] text-slate-500">No incluido</p>
+                           <p className="text-[9px] uppercase leading-snug text-slate-500">Permisos municipales · Materiales especiales</p>
+                        </div>
+                        <div className="my-3 h-px bg-slate-200" />
+                        <div className="grid grid-cols-2 items-end gap-5">
+                          <div>
+                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-primary-600">Válido por</p>
+                            <p className="mt-1 text-xs font-bold text-slate-950">15 días</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-primary-600">Total</p>
+                            <p className="mt-1 text-base font-black text-primary-600">$120.000</p>
                           </div>
                         </div>
                       </div>
