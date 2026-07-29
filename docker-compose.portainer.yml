@@ -1,15 +1,14 @@
 version: "3.8"
 
 # ==============================================================================
-# QuoteFlow - Stack File para Portainer (Testing)
+# OctopusFlow - Stack File para Portainer
 # ==============================================================================
-# Versión de TESTING que usa imagenes con tag "testing"
-# Para producción: cambiar "testing" → "latest" o "vX.Y.Z"
+# Requiere OCTOPUSFLOW_VERSION con un tag de release vX.Y.Z
 # Requiere: secreto quoteflow_backend_env pre-configurado en Portainer
 
 services:
   backend:
-    image: ghcr.io/fer336/quoteflow/backend:testing
+    image: "ghcr.io/fer336/octopus-flow/backend:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal
@@ -44,7 +43,7 @@ services:
         - "traefik.http.routers.quoteflow-static.tls.certresolver=letsencryptresolver"
 
   frontend:
-    image: ghcr.io/fer336/quoteflow/frontend:testing
+    image: "ghcr.io/fer336/octopus-flow/frontend:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal
@@ -69,7 +68,7 @@ services:
         - "traefik.http.services.quoteflow-frontend.loadbalancer.server.port=80"
 
   frontend-cms:
-    image: ghcr.io/fer336/quoteflow/frontend-cms:testing
+    image: "ghcr.io/fer336/octopus-flow/frontend-cms:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal

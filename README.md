@@ -261,42 +261,31 @@ Incluye:
 
 | Servicio | Imagen |
 |---|---|
-| `backend` | `ghcr.io/fer336/octopus-flow/backend:latest` |
-| `frontend` | `ghcr.io/fer336/octopus-flow/frontend:latest` |
-| `frontend-cms` | `ghcr.io/fer336/octopus-flow/frontend-cms:latest` |
+| `backend` | `ghcr.io/fer336/octopus-flow/backend:${OCTOPUSFLOW_VERSION}` |
+| `frontend` | `ghcr.io/fer336/octopus-flow/frontend:${OCTOPUSFLOW_VERSION}` |
+| `frontend-cms` | `ghcr.io/fer336/octopus-flow/frontend-cms:${OCTOPUSFLOW_VERSION}` |
 
 Requisitos operativos:
 
 - Red externa `network_public`.
-- Secreto externo `octopusflow_backend_env_v2`.
+- Secreto externo `budgetpro_backend_env_v2` (o `quoteflow_backend_env` cuando se usa `docker-compose.portainer.yml`).
 - Traefik con resolver `letsencryptresolver`.
+- Variable obligatoria `OCTOPUSFLOW_VERSION` con el tag completo de release, incluido el prefijo `v` (por ejemplo, `v1.5.5`). No se admite `latest` en producción.
 
-### Build y publicación de imágenes
+### Portainer Git stack
 
-Script local:
+Configurá el stack de producción con estos valores:
 
-```bash
-chmod +x scripts/deploy-images.sh
-DOCKER_USERNAME=ferc33 ./scripts/deploy-images.sh --tag v2026-03-28-2231
-```
+- Repository URL: `https://github.com/fer336/octopus-flow.git`.
+- Compose path: `docker-compose.yml` (o `docker-compose.portainer.yml` si ese stack usa el secreto `quoteflow_backend_env`).
+- Environment variable: `OCTOPUSFLOW_VERSION=vX.Y.Z`.
+- Webhook: guardalo en GitHub Actions como el secreto `PORTAINER_WEBHOOK_URL`.
 
-Flags:
+Cada push de un tag estricto `vMAJOR.MINOR.PATCH` publica las tres imágenes con ese mismo tag, actualiza el Git stack mediante el webhook y recién después crea o actualiza el GitHub Release. El workflow agrega `OCTOPUSFLOW_VERSION` al webhook como query parameter; el stack debe permitir que ese valor actualice la variable usada al renderizar el Compose. Si una imagen versionada ya existe, el workflow solo la reutiliza cuando su label OCI de revisión coincide con `github.sha`; nunca sobrescribe el tag con otro commit.
 
-| Flag | Uso |
-|---|---|
-| `--tag <tag>` | Cambia el tag de las imágenes. |
-| `--no-cache` | Fuerza build sin cache. |
+### Publicación de imágenes
 
-Variables relevantes:
-
-| Variable | Uso |
-|---|---|
-| `DOCKER_USERNAME` / `DOCKERHUB_USERNAME` | Usuario u organización de Docker Hub. |
-| `IMAGE_TAG` | Tag por defecto si no se pasa `--tag`. |
-| `FRONTEND_API_URL` / `VITE_API_URL` | URL de API para build frontend. |
-| `FRONTEND_GOOGLE_CLIENT_ID` / `VITE_GOOGLE_CLIENT_ID` | Client ID de Google para build frontend. |
-
-También existe `.github/workflows/deploy-images.yml` con `workflow_dispatch` para publicar imágenes desde GitHub Actions.
+La única ruta oficial de producción es `.github/workflows/release.yml`, activada por un tag semántico `vMAJOR.MINOR.PATCH`. Los scripts locales no publican el conjunto completo de imágenes GHCR y no deben utilizarse para desplegar producción.
 
 ## Troubleshooting
 

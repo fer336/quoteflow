@@ -1,14 +1,14 @@
 version: "3.8"
 
 # ==============================================================================
-# QuoteFlow - Docker Compose (Producción)
+# OctopusFlow - Docker Compose (Producción)
 # ==============================================================================
 # Usar con Portainer + Swarm + Traefik
 # Requiere: secreto budgetpro_backend_env_v2 pre-configurado en el manager
 
 services:
   backend:
-    image: ghcr.io/fer336/quoteflow/backend:latest
+    image: "ghcr.io/fer336/octopus-flow/backend:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal
@@ -43,7 +43,7 @@ services:
         - "traefik.http.routers.quoteflow-static.tls.certresolver=letsencryptresolver"
 
   frontend:
-    image: ghcr.io/fer336/quoteflow/frontend:latest
+    image: "ghcr.io/fer336/octopus-flow/frontend:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal
@@ -68,7 +68,7 @@ services:
         - "traefik.http.services.quoteflow-frontend.loadbalancer.server.port=80"
 
   frontend-cms:
-    image: ghcr.io/fer336/quoteflow/frontend-cms:latest
+    image: "ghcr.io/fer336/octopus-flow/frontend-cms:${OCTOPUSFLOW_VERSION:?OCTOPUSFLOW_VERSION is required}"
     networks:
       - network_public
       - budgetpro-internal

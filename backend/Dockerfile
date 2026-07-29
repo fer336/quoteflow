@@ -2,8 +2,8 @@
 FROM python:3.11-slim-bullseye
 
 # Labels para GHCR
-LABEL org.opencontainers.image.source="https://github.com/fer336/quoteflow"
-LABEL org.opencontainers.image.description="QuoteFlow Backend API"
+LABEL org.opencontainers.image.source="https://github.com/fer336/octopus-flow"
+LABEL org.opencontainers.image.description="OctopusFlow Backend API"
 LABEL org.opencontainers.image.licenses="MIT"
 
 # Argumento de versión (para metadata)

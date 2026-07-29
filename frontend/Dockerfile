@@ -7,8 +7,8 @@
 FROM node:18-alpine as build
 
 # Labels para GHCR
-LABEL org.opencontainers.image.source="https://github.com/fer336/quoteflow"
-LABEL org.opencontainers.image.description="QuoteFlow Frontend"
+LABEL org.opencontainers.image.source="https://github.com/fer336/octopus-flow"
+LABEL org.opencontainers.image.description="OctopusFlow Frontend"
 LABEL org.opencontainers.image.licenses="MIT"
 
 WORKDIR /app

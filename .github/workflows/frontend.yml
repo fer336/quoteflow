@@ -11,9 +11,6 @@ on:
       - 'docker-compose.yml'
       - 'docker-compose.portainer.yml'
       - '.github/workflows/frontend.yml'
-  release:
-    types: [published]
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/frontend
@@ -120,29 +117,32 @@ jobs:
           echo "Image CMS: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_CMS }}"
           echo "Tags CMS: ${{ steps.meta_cms.outputs.tags }}"
 
-      - name: Notify Portainer
-        if: vars.PORTAINER_WEBHOOK_URL && (github.ref_name == 'main' || github.event_name == 'release')
-        run: |
-          echo "Notifying Portainer..."
-          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
-        continue-on-error: true
-
       - name: Notify Portainer Testing
-        if: vars.PORTAINER_WEBHOOK_URL_TESTING && github.ref_name == 'testing'
+        if: github.ref_name == 'testing'
+        env:
+          PORTAINER_WEBHOOK_URL_TESTING: ${{ secrets.PORTAINER_WEBHOOK_URL_TESTING }}
         run: |
+          if [[ -z "$PORTAINER_WEBHOOK_URL_TESTING" ]]; then
+            echo "PORTAINER_WEBHOOK_URL_TESTING is not configured; skipping notification."
+            exit 0
+          fi
           echo "Notifying Portainer testing..."
-          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_TESTING }}" \
+          curl -X POST "$PORTAINER_WEBHOOK_URL_TESTING" \
             -H "Content-Type: application/json" \
             -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
         continue-on-error: true
 
       - name: Notify Portainer Marinkovic
-        if: vars.PORTAINER_WEBHOOK_URL_MARINKOVIC && github.ref_name == 'marinkovic'
+        if: github.ref_name == 'marinkovic'
+        env:
+          PORTAINER_WEBHOOK_URL_MARINKOVIC: ${{ secrets.PORTAINER_WEBHOOK_URL_MARINKOVIC }}
         run: |
+          if [[ -z "$PORTAINER_WEBHOOK_URL_MARINKOVIC" ]]; then
+            echo "PORTAINER_WEBHOOK_URL_MARINKOVIC is not configured; skipping notification."
+            exit 0
+          fi
           echo "Notifying Portainer marinkovic..."
-          curl -X POST "${{ vars.PORTAINER_WEBHOOK_URL_MARINKOVIC }}" \
+          curl -X POST "$PORTAINER_WEBHOOK_URL_MARINKOVIC" \
             -H "Content-Type: application/json" \
             -d '{"ref": "${{ github.ref_name }}", "commit": "${{ github.sha }}", "tag": "${{ steps.meta.outputs.tags }}"}'
         continue-on-error: true

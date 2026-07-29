@@ -75,7 +75,7 @@
 - [x] docker-compose.yml con GHCR + secreto budgetpro_backend_env_v2 ✅ 2026-04-27
 - [x] Crear docker-compose.portainer.yml (testing tag + mismo secreto) ✅ 2026-04-27
 - [x] Push branch testing a GitHub ✅ 2026-04-27
-- [x] Configurar GitHub var PORTAINER_WEBHOOK_URL ✅ 2026-04-27
+- [x] Configurar GitHub secret PORTAINER_WEBHOOK_URL ✅ 2026-04-27
 - [x] Multitenancy: campos branding User model ✅ 2026-04-27
 - [x] Multitenancy: GET/PATCH /api/company/settings ✅ 2026-04-27
 - [x] Multitenancy: auto-migrate schema columns ✅ 2026-04-27
