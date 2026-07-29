@@ -16,10 +16,9 @@
       <div class="brand-block">
         <div class="brand-mark-row">
           {% if company.logo_data_uri %}
-          <img class="brand-logo" src="{{ company.logo_data_uri }}" alt="Logo" style="max-width: {{ company.logo_size }}px;" />
+          <img class="brand-logo" src="{{ company.logo_data_uri }}" alt="Logo" style="width: {{ company.logo_size }}px;" />
           {% endif %}
         </div>
-        <h1 class="brand-name">{{ company.display_name or company.name }}</h1>
         {% if company.business_name and company.business_name not in ('-', '—', '') and company.business_name != company.display_name %}
         <div class="brand-subtitle">{{ company.business_name }}</div>
         {% endif %}

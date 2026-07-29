@@ -64,14 +64,7 @@ body {
 .header--no-logo .doc-number { padding-left: 0; }
 
 .brand-mark-row { min-height: 18mm; margin-bottom: 4mm; }
-.brand-logo { max-height: 28mm; object-fit: contain; display: block; }
-.brand-name {
-  color: var(--navy);
-  font-size: 28px;
-  line-height: 1.05;
-  font-weight: 800;
-  letter-spacing: -0.8px;
-}
+.brand-logo { display: block; max-width: 100%; height: auto; }
 
 .brand-subtitle {
   margin-top: 5px;

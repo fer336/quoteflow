@@ -210,8 +210,8 @@ export default function SettingsModal({ isOpen, onClose }) {
   const logoPreviewSrc = preview || existingLogo;
   const pdfFontSize = Number(companyData.pdf_font_size) || DEFAULT_PDF_FONT_SIZE;
   const pdfDescriptionFontSize = Number(companyData.pdf_description_font_size) || DEFAULT_PDF_DESCRIPTION_FONT_SIZE;
-  const logoPreviewWidthPercent = Math.min(45, (logoSize / 794) * 100);
-  const logoPreviewWidth = `${logoPreviewWidthPercent}%`;
+  const logoHeaderPreviewWidth = `${logoSize * 0.75}px`;
+  const logoPdfPreviewWidth = `${logoSize * 0.55}px`;
   const handleSaveActiveSettings = activeTab === 'pdf' ? handleSavePdf : handleSaveCompany;
   const saveButtonLabel = activeTab === 'pdf' ? 'Guardar PDF' : 'Guardar Empresa';
 
@@ -361,16 +361,14 @@ export default function SettingsModal({ isOpen, onClose }) {
                       <div className={`flex min-h-[118px] ${logoPreviewSrc ? 'items-start justify-between gap-5 sm:gap-8' : 'items-center justify-center text-center'}`}>
                         {logoPreviewSrc && <div className="min-w-0 flex-1">
                           {logoPreviewSrc ? (
-                            <img
+                             <img
                               src={logoPreviewSrc}
                               alt="Vista preliminar del logo en PDF"
-                              className="mb-3 max-h-20 object-contain object-left"
-                              style={{ width: logoPreviewWidth, minWidth: '34px' }}
-                            />
-                          ) : null}
-                          <p className="truncate text-lg font-black leading-tight text-slate-950">Mi Empresa</p>
-                          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.18em] text-primary-600">Servicios profesionales</p>
-                          <p className="mt-3 text-[10px] leading-relaxed text-slate-500">11 2345 6789<br />contacto@empresa.com<br />Buenos Aires</p>
+                              className="mb-3 block max-w-full object-contain object-left"
+                              style={{ width: logoHeaderPreviewWidth, height: 'auto' }}
+                             />
+                           ) : null}
+                           <p className="mt-3 text-[10px] leading-relaxed text-slate-500">11 2345 6789<br />contacto@empresa.com<br />Buenos Aires</p>
                         </div>}
                         <div className={`shrink-0 ${logoPreviewSrc ? 'text-right' : 'text-center'}`}>
                           <p className="text-[9px] font-black uppercase tracking-[0.22em] text-primary-600 sm:text-[10px]">Presupuesto</p>
@@ -489,14 +487,12 @@ export default function SettingsModal({ isOpen, onClose }) {
                     <div className="mx-auto flex aspect-[210/297] w-full max-w-[420px] flex-col overflow-hidden rounded-lg bg-white p-4 shadow-sm sm:p-5">
                       <div className={`flex ${logoPreviewSrc ? 'justify-between gap-5' : 'justify-center text-center'}`}>
                         {logoPreviewSrc && <div className="min-w-0 flex-1">
-                          <img
+                           <img
                             src={logoPreviewSrc}
                             alt="Vista preliminar del logo en PDF"
-                            className="mb-2 max-h-8 object-contain object-left"
-                            style={{ width: `${Math.max(18, logoPreviewWidthPercent * 0.45)}%`, minWidth: '28px' }}
+                            className="mb-2 block max-w-full object-contain object-left"
+                            style={{ width: logoPdfPreviewWidth, height: 'auto' }}
                           />
-                          <p className="truncate text-base font-black leading-tight text-slate-950">Mi Empresa</p>
-                          <p className="mt-1 text-[8px] font-black uppercase tracking-[0.18em] text-primary-600">Contacto</p>
                         </div>}
                         <div className={`shrink-0 ${logoPreviewSrc ? 'text-right' : 'text-center'}`}>
                           <p className="text-[8px] font-black uppercase tracking-[0.22em] text-primary-600">Presupuesto</p>
