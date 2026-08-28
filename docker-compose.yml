@@ -4,7 +4,7 @@ version: "3.8"
 # OctopusFlow - Docker Compose (Producción)
 # ==============================================================================
 # Usar con Portainer + Swarm + Traefik
-# Requiere: secreto budgetpro_backend_env_v2 pre-configurado en el manager
+# Requiere: secreto budgetpro_backend_env pre-configurado en el manager
 
 services:
   backend:
@@ -13,7 +13,7 @@ services:
       - network_public
       - budgetpro-internal
     secrets:
-      - source: budgetpro_backend_env_v2
+      - source: budgetpro_backend_env
         target: /run/secrets/backend.env
     environment:
       - DATABASE_URL_FILE=/run/secrets/backend.env
@@ -21,12 +21,25 @@ services:
       - CORS_ORIGINS=https://login-flow.octopustrack.shop,http://login-flow.octopustrack.shop,https://cms-flow.octopustrack.shop,http://cms-flow.octopustrack.shop
     volumes:
       - budgetpro_static:/app/static
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
           - node.role == manager
+      update_config:
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+        delay: 5s
+      rollback_config:
+        order: start-first
       restart_policy:
         condition: on-failure
         delay: 10s
@@ -49,16 +62,29 @@ services:
       - budgetpro-internal
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
           - node.role == manager
+      update_config:
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+        delay: 5s
+      rollback_config:
+        order: start-first
       restart_policy:
         condition: on-failure
         delay: 10s
-        max_attempts: 3
+        max_attempts: 10
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=network_public"
@@ -74,16 +100,29 @@ services:
       - budgetpro-internal
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints:
           - node.role == manager
+      update_config:
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+        delay: 5s
+      rollback_config:
+        order: start-first
       restart_policy:
         condition: on-failure
         delay: 10s
-        max_attempts: 3
+        max_attempts: 10
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=network_public"
@@ -105,5 +144,5 @@ volumes:
     driver: local
 
 secrets:
-  budgetpro_backend_env_v2:
+  budgetpro_backend_env:
     external: true
